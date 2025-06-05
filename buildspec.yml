@@ -10,7 +10,7 @@ phases:
       nodejs: 18
     commands:
       - echo Installing Node.js dependencies...
-      - npm install
+      - npm install --legacy-peer-deps
 
   pre_build:
     commands:
