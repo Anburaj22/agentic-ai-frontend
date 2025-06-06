@@ -40,6 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshAccessToken = async (refreshToken: string) => {
     if (!refreshToken) return logout()
 
+    // const clientId = '5g5rdsptri79c98pvuopsv5dta'
+    // const clientSecret = '1a7u8tlbqhgo625ihqofm512mfm7vuprjkrkh8oi0q3cpft6h4mn'
+    // const domain = 'https://genesys-user-pool.auth.us-east-1.amazoncognito.com'
+
     const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
     const clientSecret = process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET!
     const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!
@@ -78,6 +82,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     const refreshToken = localStorage.getItem("refresh_token")
+
+    // const clientId = '5g5rdsptri79c98pvuopsv5dta'
+    // const clientSecret = '1a7u8tlbqhgo625ihqofm512mfm7vuprjkrkh8oi0q3cpft6h4mn'
+    // const cognitoDomain = 'https://genesys-user-pool.auth.us-east-1.amazoncognito.com'
+
     const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
     const clientSecret = process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET!
     const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!
