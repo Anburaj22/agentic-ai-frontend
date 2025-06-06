@@ -34,8 +34,6 @@ export default function Idpresponse() {
       const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!
       const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!
 
-      alert(redirectUri)
-
       const basicAuth = btoa(`${clientId}:${clientSecret}`)
 
       const body = new URLSearchParams({
@@ -44,7 +42,6 @@ export default function Idpresponse() {
         redirect_uri: redirectUri,
         client_id: clientId
       })
-      alert(JSON.stringify(body))
 
       if (!clientId || !clientSecret || !redirectUri || !domain) {
         console.log("Missing environment variables for Cognito configuration")

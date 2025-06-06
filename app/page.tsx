@@ -43,7 +43,6 @@ export default function LoginPage() {
     }
 
     const loginUrl = `${domain}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`
-    alert(loginUrl)
     window.location.href = loginUrl
   }
 
