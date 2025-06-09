@@ -2,12 +2,11 @@
 
 import { useState } from "react"
 import { Handle, Position, type NodeProps, useReactFlow } from "reactflow"
-import { BarChart3, ChevronDown, ChevronUp, Trash2, Copy, Settings } from "lucide-react"
+import { BarChart3, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Textarea } from "../ui/textarea"
 import React from "react"
 
 export function ResultNode({ id, data, selected }: NodeProps) {
@@ -36,7 +35,7 @@ const handleChange = (e: any) => {
         nodes.map((node) => {
           if (node.id === id) {
             // Create a custom event with all the node data
-            const event = new CustomEvent("task-node-updated", {
+            const event = new CustomEvent("result-node-updated", {
               detail: {
                 id,
                 data: updatedData,
@@ -55,7 +54,11 @@ const handleChange = (e: any) => {
         }),
       )
     }
-  }  
+  }
+
+  const showResultSidebar = () => {
+    data.setShowResultSidebar(true);
+  }
 
   return (
     <Card className={`w-80 shadow-md node-type-result`}>
@@ -84,14 +87,9 @@ const handleChange = (e: any) => {
             <div className="space-y-3">
 
               <div className="grid gap-1">
-                <Textarea
-                  placeholder="Output"
-                  className="w-100 bg-background"
-                  name="result_output"
-                  value={nodeData.result_output}
-                  onChange={handleChange}
-                />
-
+                <Button className="bg-crew hover:bg-crew-dark" onClick={showResultSidebar}>
+                  Show Result
+                </Button>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

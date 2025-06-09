@@ -49,44 +49,32 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex justify-center">
 
-      <div className="left w-1/2">
-        <div
-          className="powered"
-          style={{
-            fontSize: '10px',
-            color: '#fff',
-            display: 'flex',
-            gap: '10px',
-            justifyContent: 'center',
-            alignItems: 'center',
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            padding: '10px 0 0 10px'
-          }}
-        >
+      <div className="left w-1/3">
+        <div className="shade absolute top-0 bg-blue-700 h-full" style={{width: 'inherit', opacity: '0.7'}}></div>
+        <div className="powered text-sm text-white flex justify-center gap-2 items-center absolute top-0 left-0 p-2">
           <span>powered by</span>
           <img src={poweredBy.src} />
         </div>
         <img src={loginBg.src} className="w-full h-full object-cover" alt="login-bg" />
       </div>
-      <div className="right w-1/2 flex items-center justify-center">
-        <div className="flex flex-col">
+      <div className="right w-2/3 flex flex-col items-center justify-center">
+        <div className="flex flex-col justify-center" style={{flexGrow: '1'}}>
           <div className="mt-5 flex justify-center">
             <Logo />
           </div>
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome to AgenticAI</CardTitle>
-            <CardDescription className="text-center">Login into your account</CardDescription>
+            {/* <CardDescription className="text-center">Login into your account</CardDescription> */}
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardFooter>
-              <Button type="submit" className="w-full bg-crew hover:bg-crew-dark" disabled={isLoading}>
-                <Grid /> Login with Apexon Account
+            <CardFooter className="text-center flex justify-center">
+              <Button type="submit" className="bg-blue hover:bg-blue-dark" disabled={isLoading}>
+                Login
               </Button>
             </CardFooter>
           </form>
         </div>
+        <div className="copyright text-xs p-2">Apexon, Copyright © 2025 Apexon India Pvt. Ltd. All rights reserved. </div>
       </div>
     </div>
   )

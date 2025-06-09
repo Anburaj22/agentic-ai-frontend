@@ -63,7 +63,6 @@ export default function Idpresponse() {
         const data = await response.json()
 
         if (response.ok && data.access_token) {
-            console.log('Tokens:', data)
 
           // Store tokens securely (e.g., in localStorage or cookies)
           localStorage.setItem('access_token', data.access_token)
@@ -77,7 +76,6 @@ export default function Idpresponse() {
 
           router.push('/workflows')
         } else {
-          console.log(data)
           setError(data.error_description || 'Failed to retrieve tokens.')
           // router.push('/')
         }

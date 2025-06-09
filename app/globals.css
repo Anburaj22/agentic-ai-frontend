@@ -36,6 +36,13 @@
 
     /* Custom sidebar width */
     --sidebar-width: 18rem !important;
+
+    --blue: #007bff;
+    --blue-light: #3395ff;
+    --blue-dark: #0056b3;
+
+    /* Font family */
+    --font-poppins: "Poppins", sans-serif;
   }
 
   .light {
@@ -78,6 +85,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-poppins);
+    font-weight: 400;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+  .font-medium {
+    font-weight: 500;
+  }
+  .font-semibold {
+    font-weight: 600;
   }
 }
 
@@ -150,3 +168,7 @@
 }
 .react-flow__handle-top {top: -6px !important;}
 .react-flow__handle-right {right: -6px !important;}
+.bg-blue-primary {background-color: #007bff;}
+.bg-blue-primary:hover {background-color: #0056b3;}
+.text-blue-primary {color: #007bff;}
+.border-blue-primary {border-color: #007bff;}

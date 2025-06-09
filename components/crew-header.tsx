@@ -9,22 +9,20 @@ import { Separator } from "@/components/ui/separator"
 import React from "react"
 
 interface CrewHeaderProps {
-  workflowName?: string
   workflowData?: any
+  saveWorkflow: any
+  runWorkflow: any
+  // workflowName: any
+  // setWorkflowName: any
 }
 
-export function CrewHeader({ workflowName = "Untitled Flow", workflowData }: CrewHeaderProps) {
-
-  const sendWorkflow = () => {
-    console.log(workflowData);
-  }
-
+export function CrewHeader({ workflowData, saveWorkflow, runWorkflow }: CrewHeaderProps) {
   return (
     <header className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-6" />
-        <Input placeholder="Untitled Flow" className="w-60 h-9 bg-background" defaultValue={workflowName} />
+        <Input placeholder="Untitled Flow" className="w-60 h-9 bg-background" defaultValue={workflowData.workflow_name} />
       </div>
 
       <div className="flex-1 flex justify-center">
@@ -89,10 +87,10 @@ export function CrewHeader({ workflowName = "Untitled Flow", workflowData }: Cre
       </div>
 
       <div className="flex items-center gap-4">
-        <Button className="bg-crew hover:bg-crew-dark">
+        <Button className="bg-blue hover:bg-blue-dark" onClick={runWorkflow}>
           <Play /> Run
         </Button>
-        <Button className="bg-crew hover:bg-crew-dark" onClick={sendWorkflow} >
+        <Button className="bg-blue hover:bg-blue-dark" onClick={saveWorkflow} >
           <Save /> Save
         </Button>
       </div>

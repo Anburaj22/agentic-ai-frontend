@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React from 'react'
 import { useRouter, usePathname } from "next/navigation"
 
 interface AuthContextType {
@@ -8,23 +8,22 @@ interface AuthContextType {
   logout: () => void
 }
 
-const AuthContext = createContext<AuthContextType>({
+const AuthContext = React.createContext<AuthContextType>({
   isAuthenticated: false,
   accessToken: null,
   logout: () => {},
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [initializing, setInitializing] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [accessToken, setAccessToken] = React.useState<string | null>(null)
+  const [initializing, setInitializing] = React.useState(true)
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
-// Define public paths that do not require authentication
+  /** Define public paths that do not require authentication */
   const publicPaths = ["/", "/idpresponse"]
   const isPublicPage = publicPaths.includes(pathname)
-  // const isPublicPage = pathname.startsWith("/") && (pathname === "/" || pathname.startsWith("/idpresponse"))
 
   const isTokenExpired = (token: string): boolean => {
     try {
@@ -68,7 +67,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const data = await res.json()
     if (data.access_token) {
       console.log('Access token refreshed!')
-
       localStorage.setItem('access_token', data.access_token)
       localStorage.setItem('refresh_token', data.refresh_token || refreshToken)
       localStorage.setItem('id_token', data.id_token || '')
@@ -127,7 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/") // redirect to login
   }
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isPublicPage) {
       setInitializing(false)
       return
@@ -135,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const checkAndRefreshToken = async () => {
       if (pathname === '/idpresponse') {
-        // Skip check entirely while we're on the idpresponse page
+        /** Skip check entirely while we're on the idpresponse page */
         setInitializing(false)
         return
       }
@@ -172,7 +170,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
   }, [pathname])
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!initializing) {
       const token = localStorage.getItem('access_token')
       setAccessToken(token)
@@ -203,7 +201,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = React.useContext(AuthContext)
   if (!context) throw new Error('useAuth must be used inside AuthProvider')
   return context
 }

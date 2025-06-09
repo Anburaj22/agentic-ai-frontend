@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useState, useCallback, useRef, useEffect } from "react"
 import ReactFlow, {
@@ -28,7 +28,9 @@ import { ResultNode } from "./nodes/result-node"
 import { ToolNode } from "./nodes/tool-node"
 import { CustomEdge } from "./edges/custom-edge"
 import { initialNodes, initialEdges } from "@/lib/initial-flow"
-import { useToast } from "@/components/ui/use-toast"
+
+import ResultSidebar from "./result-sidebar"
+import { addWorkflow, executeWorkflow, getWorkflowById } from "@/services/WorkflowServices";
 
 const nodeTypes: NodeTypes = {
   agent: AgentNode,
@@ -48,7 +50,6 @@ interface FlowEditorProps {
   showHeader?: boolean
 }
 
-// Define the interface for the node data update
 interface NodeDataUpdate {
   id: string,
   data: {
@@ -72,6 +73,11 @@ interface NodeDataUpdate {
   childs?: string[]
 }
 
+interface WorkflowType {
+  workflow_name: string,
+  nodes: NodeDataUpdate[]
+}
+
 function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -79,18 +85,34 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
   const { project, screenToFlowPosition } = useReactFlow()
-  const [workflow, setWorkflow] = useState<{
-    workflow_name: string;
-    nodes: NodeDataUpdate[];
-  }>({
-    workflow_name: 'New Workflow',
-    nodes: []
-  });
+  const [workflow, setWorkflow] = useState<WorkflowType>({workflow_name: 'New Workflow', nodes: []});
+  const [showResultSidebar, setShowResultSidebar] = React.useState(false);
+  const [savedWorkflowId, setSavedWorkflowId] = React.useState(null);
+  const [workflowName, setWorkflowName] = React.useState('');
 
-/** Load workflow data based on workflowId */
+  /** Load workflow data based on workflowId */
   useEffect(() => {
     if (workflowId) {
       /** Need to get workflow by its id */
+      if( workflowId !== 'new') {
+        getWorkflowById(workflowId).then( (resp: any) => {
+          /** Set name of workflow */
+          const updatedWorkflow = {
+            ...workflow,
+            workflow_name: resp.workflow_name
+          };
+          setWorkflow(updatedWorkflow);
+
+          /** Parse respose to get nodes */
+          const generatedNodes = transformWorkflow(resp);
+          setNodes(generatedNodes);
+          /** Parse respose to get edged */
+          const generatedEdges = generateEdgesFromNodes(resp);
+          setEdges(generatedEdges);
+        } ).catch( (err: any) => {
+          console.log(err);
+        } );
+      }
     }
   }, [workflowId])
 
@@ -116,27 +138,48 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     event.preventDefault();
     const type = event.dataTransfer.getData("application/reactflow/type");
     const name = event.dataTransfer.getData("application/reactflow/name");
-    if (!type || !reactFlowWrapper.current)
-      return;
+    if (!type || !reactFlowWrapper.current) return;
+
     const position = screenToFlowPosition({
       x: event.clientX,
       y: event.clientY,
     });
     const newNodeId = `${type}-${Date.now()}`;
+    const isResultNode = type === "result";
+
     const newNode = {
       id: newNodeId,
       type,
       position,
-      data: { label: name || `New ${type}` },
-      className: `${type}-node`, /** Add the class name for custom styling */
+      data: {
+        label: name || `New ${type}`,
+        ...(isResultNode && {
+          showResultSidebar,
+          setShowResultSidebar,
+          result_output: ""
+        }),
+      },
+      className: `${type}-node`,
     };
+
     setNodes((nds) => nds.concat(newNode));
-  }, [screenToFlowPosition, setNodes]);
+
+    if (isResultNode) {
+      const event = new CustomEvent("result-node-updated", {
+        detail: {
+          id: newNodeId,
+          data: { result_output: "" },
+          position,
+        },
+      });
+      document.dispatchEvent(event);
+    }
+
+  }, [screenToFlowPosition, setNodes, showResultSidebar, setShowResultSidebar]);
 
   /** Handle keyboard events for deleting nodes */
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log( event.key );
       if (event.key === "Delete") {
         /** Get selected nodes */
         const selectedNodes = nodes.filter((node) => node.selected);
@@ -269,7 +312,86 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [edges]);
 
   const saveWorkflow = () => {
-    console.log(workflow);
+    addWorkflow(workflow).then((resp: any) => {
+      if(resp && resp.id) {
+        alert(`workflow created successfully - ${resp.id}`);
+        setSavedWorkflowId(resp.id);
+      }
+    }).catch((err: any) => {
+      console.log(err);
+    });
+  }
+
+  const runWorkflow = () => {
+    let id;
+    if(workflowId !== 'new') {
+      id = workflowId;
+    } else if(savedWorkflowId !== null) {
+      id = savedWorkflowId;
+    }
+    if(id) {
+      /** Call the api to run workflow */
+      executeWorkflow(id)
+    } else {
+      alert('Please save the workflow first');
+    }
+  }
+
+  const transformWorkflow = (workflow: any) => {
+    const { nodes } = workflow;
+    return nodes.map((node: any) => {
+      let type = "";
+
+      if (node.id.startsWith("agent-")) {
+        type = "agent";
+      } else if (node.id.startsWith("task-")) {
+        type = "task";
+      } else if (node.id.startsWith("tool-")) {
+        type = "tool";
+      } else if (node.id.startsWith("result-")) {
+        type = "result";
+      } else if (node.id.startsWith("crew-")) {
+        type = "crew";
+      } else if (node.id.startsWith("knowledge-")) {
+        type = "knowledge";
+      } else {
+        type = "unknown";
+      }
+
+      return {
+        id: node.id,
+        type,
+        position: node.position,
+        data: {
+          ...node.data, // Preserve all custom fields
+          label: node.data.label || node.data.agent_name || node.data.task_name || node.data.tool_name || "Unnamed",
+          ...(type === "result" && {
+            showResultSidebar: true,
+            setShowResultSidebar: () => {}, // optionally reuse state setter if needed
+          }),
+        },
+        className: `${type}-node`,
+      };
+    });
+  };
+
+  const generateEdgesFromNodes = (workflow: any) => {
+    const edges: any = [];
+    workflow.nodes.forEach((node: any) => {
+      if (node.childs && node.childs.length > 0) {
+        node.childs.forEach((childId: any) => {
+          edges.push({
+            id: `e-${node.id}-${childId}`,
+            source: node.id,
+            target: childId,
+            type: "custom",
+            animated: true,
+          });
+        });
+      }
+    });
+
+    return edges;
   }
 
   return (
@@ -279,8 +401,11 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         <div className="flex flex-1 flex-col h-screen">
           {showHeader && (
             <CrewHeader
-              workflowName={workflowId === "new" ? "New Workflow" : `Workflow: ${workflowId}`}
               workflowData={workflow}
+              saveWorkflow={saveWorkflow}
+              runWorkflow={runWorkflow}
+              // workflowName
+              // setWorkflowName
             />
           )}
           <div className={`flex-1 ${showHeader ? "h-[calc(100vh-4rem)]" : "h-screen"}`} ref={reactFlowWrapper}>
@@ -311,6 +436,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             </ReactFlow>
           </div>
         </div>
+        <ResultSidebar isOpen={showResultSidebar} onClose={setShowResultSidebar}></ResultSidebar>
       </SidebarProvider>
     </div>
   )

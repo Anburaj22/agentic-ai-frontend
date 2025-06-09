@@ -29,7 +29,7 @@ const AppSidebarFooter = () => {
           </Button>
         )}
         <Link href="/workflows/new">
-          <Button className="bg-crew hover:bg-crew-dark">
+          <Button className="bg-blue hover:bg-blue-dark">
             <Plus />
             New Workflow
           </Button>

@@ -19,6 +19,17 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-poppins)", "system-ui", "sans-serif"],
+        poppins: ["var(--font-poppins)", "sans-serif"],
+      },
+      fontWeight: {
+        light: "300",
+        normal: "400",
+        medium: "500",
+        semibold: "600",
+        bold: "700",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +68,11 @@ const config = {
           DEFAULT: "#e94444",
           light: "#f06363",
           dark: "#c93838",
+        },
+        blue: {
+          DEFAULT: "#007bff",
+          light: "#3395ff",
+          dark: "#0056b3",
         },
       },
       borderRadius: {

@@ -13,7 +13,7 @@ import React from "react"
 
 export function TaskNode({ id, data, selected }: NodeProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [taskName, setTaskName] = useState(data?.agent_name || "New Task");
+  const [taskName, setTaskName] = useState(data?.task_name || "New Task");
   const { setNodes } = useReactFlow();
   
   const [nodeData, setNodeData] = useState({

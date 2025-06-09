@@ -1,0 +1,4 @@
+.result-sidebar { width: 100%; border-left: solid 1px #dfdfdf; box-shadow: -2px 0 5px rgba(0,0,0,0.1); }
+.result-sidebar .title-bar { display: flex; justify-content: space-between; border-bottom: solid 1px #dfdfdf; padding: 1.2rem; }
+.result-sidebar .close-logo { cursor: pointer; }
+.result-sidebar .response-content { padding: 1.2rem; height: calc(100vh - 64px); overflow: auto;}
