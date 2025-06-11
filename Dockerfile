@@ -1,24 +1,18 @@
-# Stage 1: Build stage
-FROM public.ecr.aws/docker/library/node:22 AS builder
+FROM public.ecr.aws/docker/library/node:20 AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-# Force rebuild of sharp for current Node version and platform
-RUN npm rebuild sharp
-
 COPY . .
 RUN npm run build
 
-# Stage 2: Production stage (non-Alpine to support sharp)
-FROM public.ecr.aws/docker/library/node:22-slim
+FROM public.ecr.aws/docker/library/node:20-slim
 
 RUN apt-get update && \
-    apt-get install -y \
-        libvips-dev \
-        && rm -rf /var/lib/apt/lists/*
+    apt-get install -y libvips-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
