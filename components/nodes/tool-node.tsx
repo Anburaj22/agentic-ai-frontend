@@ -98,23 +98,30 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
     [id, setNodes],
   )
 
-  const handleToolSelection = useCallback(
-    (toolId: string) => {
-      const tool = allTools.find((t) => t.original_id === toolId)
+  const handleChange = useCallback(
+    (e: any) => {
+
+      const selected_tool_id = e.target.value;
+
+      /** Find selected tools in all tools to save an extra API call */
+      const tool = allTools.find((t) => t.original_id === selected_tool_id)
       if (!tool) return
 
+      /** Set name of tool to show as card title */
+      setToolName(tool.name);
+
+      /** set selected tool in state for further use */
       setSelectedTool(tool)
-      // setToolName(slugToString(tool.name))
       setSchema(tool.parameters_schema || {})
 
-      // Reset dynamic field values when changing tools
+      /** Reset dynamic field values when changing tools */
       const newNodeData = {
-        tool_name: toolId,
+        tool_name: selected_tool_id,
         tool_description: tool.description,
         tool_class_name: tool.class_name,
       }
 
-      // Initialize dynamic fields with default values
+      /** Initialize dynamic fields with default values */
       if (tool.parameters_schema) {
         Object.entries(tool.parameters_schema).forEach(([fieldName, config]: [string, any]) => {
           newNodeData[fieldName] = config.default || ""
@@ -172,10 +179,6 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
     [id, nodeData, handleFieldChange],
   )
 
-  const slugToString = (slug: string) => {
-    return slug.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
-  }
-
   return (
     <Card className="w-80 shadow-md tool-node">
       <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0">
@@ -206,14 +209,15 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
                 <Label className="text-xs font-medium text-muted-foreground">Select Tool</Label>
                 <Select
                   value={nodeData.tool_name || ""}
-                  onValueChange={handleToolSelection}
+                  // onValueChange={handleToolSelection}
+                  onValueChange={(value) => handleChange({ target: { name: "tool_name", value } })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Tool" />
                   </SelectTrigger>
                   <SelectContent>
                     {allTools.map((tool) => (
-                      <SelectItem key={tool.original_id} value={tool.original_id}>
+                      <SelectItem key={tool.numeric_id} value={tool.original_id}>
                         {tool.name}
                       </SelectItem>
                     ))}

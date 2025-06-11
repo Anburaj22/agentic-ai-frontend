@@ -4,9 +4,10 @@ import './result-sidebar.css';
 interface ResultSidebarProps {
   isOpen: boolean
   onClose: (val: boolean) => void
+  nodeId: any
 }
 
-const ResultSidebar = ({isOpen, onClose}: ResultSidebarProps) => {
+const ResultSidebar = ({isOpen, onClose, nodeId}: ResultSidebarProps) => {
 
   if (!isOpen) return null
 

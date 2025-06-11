@@ -1,28 +1,38 @@
 "use client"
 
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Save, Play, Download, Upload, Share2, Undo, Redo } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
-import React from "react"
 
 interface CrewHeaderProps {
   workflowData?: any
   saveWorkflow: any
   runWorkflow: any
-  // workflowName: any
-  // setWorkflowName: any
+  setWorkflowName: any
+  buttonTitle: string
 }
 
-export function CrewHeader({ workflowData, saveWorkflow, runWorkflow }: CrewHeaderProps) {
+export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflowName, buttonTitle }: CrewHeaderProps) {
+
+  const handleInputChange = (e: any) => {
+    setWorkflowName(e.target.value);
+  }
+
   return (
     <header className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-6" />
-        <Input placeholder="Untitled Flow" className="w-60 h-9 bg-background" defaultValue={workflowData.workflow_name} />
+        <Input
+          placeholder="Untitled Flow"
+          className="w-60 h-9 bg-background"
+          value={workflowData.workflow_name}
+          onChange={handleInputChange}
+        />
       </div>
 
       <div className="flex-1 flex justify-center">
@@ -91,7 +101,7 @@ export function CrewHeader({ workflowData, saveWorkflow, runWorkflow }: CrewHead
           <Play /> Run
         </Button>
         <Button className="bg-blue hover:bg-blue-dark" onClick={saveWorkflow} >
-          <Save /> Save
+          <Save /> {buttonTitle}
         </Button>
       </div>
     </header>

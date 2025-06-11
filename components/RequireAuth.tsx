@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true)
+  // const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
@@ -13,11 +13,11 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     if (!accessToken) {
       router.push("/") // Redirect to login
     } else {
-      setIsLoading(false)
+      // setIsLoading(false)
     }
   }, [router])
 
-  if (isLoading) return <div>Loading...</div>
+  // if (isLoading) return <div>Loading...</div>
 
   return <>{children}</>
 }

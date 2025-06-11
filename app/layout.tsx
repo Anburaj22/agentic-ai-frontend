@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import favicon from '../public/assets/favicon.png';
 import { AuthProvider } from '@/components/AuthProvider'
+import { ToastContainer } from 'react-toastify';
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -29,6 +30,18 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
            <AuthProvider>
             {children}
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick={false}
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
           </AuthProvider>
         </ThemeProvider>
       </body>

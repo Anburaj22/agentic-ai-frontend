@@ -6,34 +6,47 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { FlowerIcon as FlowIcon, Search, Calendar, Users, Trash2, ChartNetwork } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { toast } from 'react-toastify';
 
 import RequireAuth from "@/components/RequireAuth"
 import { deleteWorkflow, getWorkflow } from "@/services/WorkflowServices"
+import PreLoader from "@/components/PreLoader"
 
 export default function WorkflowsPage() {
 
   const [allWorkflows, setAllWorkflows] = React.useState<any>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   React.useEffect( () => {
     getAllWorkflow();
   }, []);
 
   const getAllWorkflow = () => {
+    setIsLoading(true);
     getWorkflow().then((resp: any) => {
-      const updatedData = resp.map((item: any) => ({
+      const updatedData = resp.data.map((item: any) => ({
         ...item,
-        description: 'Analyze application security vulnerabilities and best practices',
+        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
         icon: ChartNetwork,
         color: 'bg-blue-500/10 text-blue-500',
         lastEdited: formatDate(item.updated_at),
-        agents: 2,
-        tasks: 4,
+        agents: getTypeCount(item, 'agent'),
+        tasks: getTypeCount(item, 'task'),
         status: 'success'
       }));
       setAllWorkflows(updatedData);
+      setIsLoading(false);
     }).catch((err: any) => {
-      console.log(err)
+      const status = err.response.status;
+      const data = err.response.data;
+      const errorMessage = data.message || data.error || 'Something went wrong';
+      toast.error(`Error ${status}: ${errorMessage}`);
+      setIsLoading(false);
     });
+  }
+
+  const getTypeCount = (obj: any, key: any) => {
+    return obj.nodes.filter((node: any) => typeof node.id === 'string' && node.id.startsWith(`${key}-`)).length;
   }
 
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -69,15 +82,22 @@ export default function WorkflowsPage() {
   }
 
   const handleDelete = (id: string) => {
-    deleteWorkflow(id).then( (resp: any) => {
-      getAllWorkflow();
-    } ).catch( (err: any) => {
-      console.log(err);
-    } );
+    if(confirm('Confirm delete?')) {
+      deleteWorkflow(id).then( (resp: any) => {
+        toast.success(resp.data.message);
+        getAllWorkflow();
+      } ).catch( (err: any) => {
+        const status = err.response.status;
+        const data = err.response.data;
+        const errorMessage = data.message || data.error || 'Something went wrong';
+        toast.error(`Error ${status}: ${errorMessage}`);
+      } );
+    }
   }
 
   return (
     <RequireAuth>
+      {isLoading ? (<PreLoader />) : (<></>)}
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Workflows</h1>

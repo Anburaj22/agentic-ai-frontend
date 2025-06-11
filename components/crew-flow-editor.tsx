@@ -30,7 +30,9 @@ import { CustomEdge } from "./edges/custom-edge"
 import { initialNodes, initialEdges } from "@/lib/initial-flow"
 
 import ResultSidebar from "./result-sidebar"
-import { addWorkflow, executeWorkflow, getWorkflowById } from "@/services/WorkflowServices";
+import { addWorkflow, executeWorkflow, getWorkflowById, updateWorkflow } from "@/services/WorkflowServices";
+import PreLoader from "./PreLoader"
+import { toast } from "react-toastify"
 
 const nodeTypes: NodeTypes = {
   agent: AgentNode,
@@ -88,29 +90,36 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [workflow, setWorkflow] = useState<WorkflowType>({workflow_name: 'New Workflow', nodes: []});
   const [showResultSidebar, setShowResultSidebar] = React.useState(false);
   const [savedWorkflowId, setSavedWorkflowId] = React.useState(null);
-  const [workflowName, setWorkflowName] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [currentWorkflowName, setCurrentWorkflowName] = React.useState<string>(workflow.workflow_name);
+  const [selectedResultNodeId, setSelectedResultNodeId] = useState<string | null>(null)
+
+  const [resultSidebarOpen, setResultSidebarOpen] = useState(false)
 
   /** Load workflow data based on workflowId */
   useEffect(() => {
     if (workflowId) {
       /** Need to get workflow by its id */
       if( workflowId !== 'new') {
+        setIsLoading(true);
         getWorkflowById(workflowId).then( (resp: any) => {
-          /** Set name of workflow */
-          const updatedWorkflow = {
-            ...workflow,
-            workflow_name: resp.workflow_name
-          };
-          setWorkflow(updatedWorkflow);
+          setWorkflow(resp.data);
 
           /** Parse respose to get nodes */
-          const generatedNodes = transformWorkflow(resp);
+          const generatedNodes = transformWorkflow(resp.data);
           setNodes(generatedNodes);
+
           /** Parse respose to get edged */
-          const generatedEdges = generateEdgesFromNodes(resp);
+          const generatedEdges = generateEdgesFromNodes(resp.data);
           setEdges(generatedEdges);
+
+          setIsLoading(false);
         } ).catch( (err: any) => {
-          console.log(err);
+          const status = err.response.status;
+          const data = err.response.data;
+          const errorMessage = data.message || data.error || 'Something went wrong';
+          toast.error(`Error ${status}: ${errorMessage}`);
+          setIsLoading(false);
         } );
       }
     }
@@ -312,14 +321,47 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [edges]);
 
   const saveWorkflow = () => {
-    addWorkflow(workflow).then((resp: any) => {
-      if(resp && resp.id) {
-        alert(`workflow created successfully - ${resp.id}`);
-        setSavedWorkflowId(resp.id);
+    /** First we are checking that workflow is not empty atleast */
+    if( workflow.nodes.length > 0 ) {
+
+      if(workflowId === 'new') {
+        /** Saving new workflow */
+        addWorkflow(workflow).then((resp: any) => {
+          if(resp && resp.data.id) {
+            toast.success('Workflow saved successfully');
+            setSavedWorkflowId(resp.data.id);
+          }
+        }).catch((err: any) => {
+          const status = err.response.status;
+          const data = err.response.data;
+          const errorMessage = data.message || data.error || 'Something went wrong';
+          toast.error(`Error ${status}: ${errorMessage}`);
+        });
+      } else {
+        /** Update existing workflow */
+        if( workflowId ) {
+          updateWorkflow(workflowId, workflow).then( (resp) => {
+            console.log(resp);
+            if(resp && resp.data.id) {
+              toast.success('Workflow updated successfully');
+            }
+          } ).catch( (err) => {
+            const status = err.response.status;
+            const data = err.response.data;
+            const errorMessage = data.message || data.error || 'Something went wrong';
+            toast.error(`Error ${status}: ${errorMessage}`);
+          } );
+        }
       }
-    }).catch((err: any) => {
-      console.log(err);
-    });
+    } else {
+      toast.error('Unable to save empty workflow');
+    }
+  }
+
+  const setWorkflowName = (name: string) => {
+    setCurrentWorkflowName(name);
+    const upWf = {...workflow, workflow_name: name}
+    setWorkflow( upWf );
   }
 
   const runWorkflow = () => {
@@ -329,11 +371,18 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     } else if(savedWorkflowId !== null) {
       id = savedWorkflowId;
     }
+
     if(id) {
-      /** Call the api to run workflow */
-      executeWorkflow(id)
+      executeWorkflow(id).then((resp: any)=> {
+        console.log(resp);
+      }).catch( (err: any) => {
+        const status = err.response.status;
+        const data = err.response.data;
+        const errorMessage = data.message || data.error || 'Something went wrong';
+        toast.error(`Error ${status}: ${errorMessage}`);
+      });
     } else {
-      alert('Please save the workflow first');
+      toast.error('Need to save the workflow first');
     }
   }
 
@@ -394,6 +443,63 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     return edges;
   }
 
+  const handleOpenResultSidebar = useCallback((nodeId: string) => {
+    setSelectedResultNodeId(nodeId)
+    setResultSidebarOpen(true)
+  }, [])
+
+  const handleCloseResultSidebar = useCallback(() => {
+    setResultSidebarOpen(false)
+    setSelectedResultNodeId(null)
+  }, [])
+
+  /** Memoize nodeTypes to prevent unnecessary re-renders */
+  const nodeTypes: NodeTypes = React.useMemo(
+    () => ({
+      agent: AgentNode,
+      task: TaskNode,
+      knowledge: KnowledgeNode,
+      crew: CrewNode,
+      result: (props: any) => <ResultNode {...props} onOpenSidebar={handleOpenResultSidebar} />,
+      tool: ToolNode,
+    }),
+    [],
+  )
+
+  const reactFlowProps = React.useMemo(
+    () => ({
+      nodes,
+      edges,
+      onNodesChange,
+      onEdgesChange,
+      onConnect,
+      onNodeClick,
+      onPaneClick,
+      nodeTypes,
+      edgeTypes,
+      onDragOver,
+      onDrop,
+      onInit: setReactFlowInstance,
+      snapToGrid: true,
+      snapGrid: [15, 15] as [number, number],
+      defaultEdgeOptions: {
+        type: "custom",
+        animated: true,
+      },
+      defaultViewport: { x: 0, y: 0, zoom: 1 },
+      style: { backgroundColor: "#F7F9FB" },
+      deleteKeyCode: null,
+      nodesDraggable: true,
+      elementsSelectable: true,
+      zoomOnScroll: true,
+      zoomOnPinch: true,
+      panOnScroll: false,
+      preventScrolling: true,
+      attributionPosition: "bottom-left" as const,
+    }),
+    [nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, nodeTypes, onDragOver, onDrop],
+  )
+
   return (
     <div className="flex h-screen w-full">
       <SidebarProvider>
@@ -404,11 +510,16 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               workflowData={workflow}
               saveWorkflow={saveWorkflow}
               runWorkflow={runWorkflow}
-              // workflowName
-              // setWorkflowName
+              setWorkflowName={setWorkflowName}
+              buttonTitle={workflowId === 'new' ? 'Save' : 'Update'}
             />
           )}
-          <div className={`flex-1 ${showHeader ? "h-[calc(100vh-4rem)]" : "h-screen"}`} ref={reactFlowWrapper}>
+          <div
+            className={`flex-1 ${showHeader ? "h-[calc(100vh-4rem)]" : "h-screen"} outline-none`}
+            ref={reactFlowWrapper}
+            style={{ contain: "layout style paint" }}
+          >
+            {isLoading ? (<PreLoader />) : (<></>)}
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -436,7 +547,8 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             </ReactFlow>
           </div>
         </div>
-        <ResultSidebar isOpen={showResultSidebar} onClose={setShowResultSidebar}></ResultSidebar>
+        {/* <ResultSidebar isOpen={showResultSidebar} onClose={setShowResultSidebar}></ResultSidebar> */}
+        <ResultSidebar isOpen={resultSidebarOpen} onClose={handleCloseResultSidebar} nodeId={selectedResultNodeId} />
       </SidebarProvider>
     </div>
   )

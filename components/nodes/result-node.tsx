@@ -9,10 +9,14 @@ import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import React from "react"
 
-export function ResultNode({ id, data, selected }: NodeProps) {
+interface ResultNodeProps extends NodeProps {
+  onOpenSidebar?: (nodeId: string) => void
+}
+
+export function ResultNode({ id, data, selected, onOpenSidebar }: ResultNodeProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { setNodes } = useReactFlow();
-  
+  const { setNodes } = useReactFlow()
+
   const [nodeData, setNodeData] = useState({
     result_output: data?.result_output || "",
   })
@@ -23,13 +27,13 @@ export function ResultNode({ id, data, selected }: NodeProps) {
         result_output: data.result_output || nodeData.result_output,
       })
     }
-  }, [data]);
-  
-const handleChange = (e: any) => {
-    if(e.target) {
-      const {name, value} = e.target;
-      const updatedData = { ...nodeData, [name]: value };
-      setNodeData(updatedData);
+  }, [data])
+
+  const handleChange = (e: any) => {
+    if (e.target) {
+      const { name, value } = e.target
+      const updatedData = { ...nodeData, [name]: value }
+      setNodeData(updatedData)
 
       setNodes((nodes) =>
         nodes.map((node) => {
@@ -41,14 +45,14 @@ const handleChange = (e: any) => {
                 data: updatedData,
                 position: {
                   x: node.position.x,
-                  y: node.position.y
-                }
+                  y: node.position.y,
+                },
               },
             })
 
             // Dispatch the event
             document.dispatchEvent(event)
-            return {...node, data: { ...node.data, ...updatedData}}
+            return { ...node, data: { ...node.data, ...updatedData } }
           }
           return node
         }),
@@ -56,8 +60,22 @@ const handleChange = (e: any) => {
     }
   }
 
-  const showResultSidebar = () => {
-    data.setShowResultSidebar(true);
+  const handleOpenSidebar = () => {
+    // console.log("ResultNode: Button clicked, nodeId:", id)
+    // console.log("ResultNode: onOpenSidebar prop:", onOpenSidebar)
+
+    // Try multiple approaches to open the sidebar
+    if (onOpenSidebar) {
+      onOpenSidebar(id)
+    } else if (data?.setShowResultSidebar) {
+      data.setShowResultSidebar(true)
+    } else {
+      // Fallback: dispatch a custom event
+      const event = new CustomEvent("open-result-sidebar", {
+        detail: { nodeId: id },
+      })
+      document.dispatchEvent(event)
+    }
   }
 
   return (
@@ -85,14 +103,10 @@ const handleChange = (e: any) => {
         <CollapsibleContent>
           <CardContent className="p-4 pt-0">
             <div className="space-y-3">
-
               <div className="grid gap-1">
-                <Button className="bg-crew hover:bg-crew-dark" onClick={showResultSidebar}>
+                <Button className="bg-crew hover:bg-crew-dark" onClick={handleOpenSidebar}>
                   Show Result
                 </Button>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
               </div>
             </div>
           </CardContent>
