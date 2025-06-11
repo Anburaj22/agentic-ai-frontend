@@ -6,13 +6,15 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
+# Force rebuild of sharp for current Node version and platform
+RUN npm rebuild sharp
+
 COPY . .
 RUN npm run build
 
 # Stage 2: Production stage (non-Alpine to support sharp)
 FROM public.ecr.aws/docker/library/node:22-slim
 
-# Install necessary dependencies for sharp
 RUN apt-get update && \
     apt-get install -y \
         libvips-dev \
