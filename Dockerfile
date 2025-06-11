@@ -1,34 +1,38 @@
 # Stage 1: Build stage
-FROM public.ecr.aws/docker/library/node:18 AS builder
+FROM node:18 AS builder
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install pnpm globally
+# Install dependencies
 COPY package*.json ./
-RUN npm install -g pnpm
-
-# Install dependencies using npm (you can switch to pnpm if needed)
 RUN npm install --legacy-peer-deps
 
-# Copy the full project
+# Copy the rest of the application
 COPY . .
 
 # Build the Next.js app
 RUN npm run build
 
-# Stage 2: Production stage
-FROM public.ecr.aws/docker/library/node:18-alpine
+# Stage 2: Production stage (non-Alpine to support sharp)
+FROM node:18-slim
+
+# Install necessary dependencies for sharp
+RUN apt-get update && \
+    apt-get install -y \
+        libvips-dev \
+        && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy only the necessary files from the build stage
+# Copy build artifacts
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Expose the app port
+# Expose port
 EXPOSE 3030
 
-# Start the Next.js server
+# Start the app
 CMD ["npx", "next", "start", "-p", "3030"]
