@@ -15,7 +15,7 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps --include=optional
 
 # Reinstall sharp explicitly for the target architecture (linux-x64)
-RUN npm install --include=optional --os=linux --cpu=x64 sharp
+RUN npm install --legacy-peer-deps --include=optional --os=linux --cpu=x64 sharp
 
 # Copy the rest of your app code
 COPY . .
@@ -37,5 +37,4 @@ COPY --from=builder /app/package.json ./package.json
 # Expose the port you're using
 EXPOSE 3030
 
-# Start the application
 CMD ["npx", "next", "start", "-p", "3030"]
