@@ -95,6 +95,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [selectedResultNodeId, setSelectedResultNodeId] = useState<string | null>(null)
 
   const [resultSidebarOpen, setResultSidebarOpen] = useState(false)
+  const [output, setOutput] = React.useState<any>();
 
   /** Load workflow data based on workflowId */
   useEffect(() => {
@@ -298,7 +299,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   useEffect(() => {
     setWorkflow((prevWorkflow) => {
       const updatedNodes = prevWorkflow.nodes.map((node) => {
-        const source = edges
+        const parents = edges
           .filter((e) => e.target === node.id)
           .map((e) => e.source);
 
@@ -308,7 +309,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
 
         return {
           ...node,
-          source,
+          parents,
           childs,
         };
       });
@@ -323,15 +324,18 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const saveWorkflow = () => {
     /** First we are checking that workflow is not empty atleast */
     if( workflow.nodes.length > 0 ) {
+      setIsLoading(true);
 
       if(workflowId === 'new') {
         /** Saving new workflow */
         addWorkflow(workflow).then((resp: any) => {
           if(resp && resp.data.id) {
+            setIsLoading(false);
             toast.success('Workflow saved successfully');
             setSavedWorkflowId(resp.data.id);
           }
         }).catch((err: any) => {
+          setIsLoading(false);
           const status = err.response.status;
           const data = err.response.data;
           const errorMessage = data.message || data.error || 'Something went wrong';
@@ -340,12 +344,14 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       } else {
         /** Update existing workflow */
         if( workflowId ) {
+          setIsLoading(true);
           updateWorkflow(workflowId, workflow).then( (resp) => {
-            console.log(resp);
             if(resp && resp.data.id) {
               toast.success('Workflow updated successfully');
             }
+            setIsLoading(false);
           } ).catch( (err) => {
+            setIsLoading(false);
             const status = err.response.status;
             const data = err.response.data;
             const errorMessage = data.message || data.error || 'Something went wrong';
@@ -371,11 +377,14 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     } else if(savedWorkflowId !== null) {
       id = savedWorkflowId;
     }
-
+    
+    setIsLoading(true);
     if(id) {
       executeWorkflow(id).then((resp: any)=> {
-        console.log(resp);
+        setIsLoading(false);
+        setOutput(resp.data.output);
       }).catch( (err: any) => {
+        setIsLoading(false);
         const status = err.response.status;
         const data = err.response.data;
         const errorMessage = data.message || data.error || 'Something went wrong';
@@ -548,7 +557,12 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
           </div>
         </div>
         {/* <ResultSidebar isOpen={showResultSidebar} onClose={setShowResultSidebar}></ResultSidebar> */}
-        <ResultSidebar isOpen={resultSidebarOpen} onClose={handleCloseResultSidebar} nodeId={selectedResultNodeId} />
+        <ResultSidebar
+          isOpen={resultSidebarOpen}
+          onClose={handleCloseResultSidebar}
+          nodeId={selectedResultNodeId}
+          output={output}
+        />
       </SidebarProvider>
     </div>
   )

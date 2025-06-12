@@ -2,9 +2,9 @@ import axios from 'axios';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
 const metaData = {
-  token: 'random-string-passed', //localStorage.getItem('access_token')
-  user_name: '',
-  user_email: 'palash.gupta@apexon.com'
+  token: 'random-token', //localStorage.getItem('access_token')
+  user_name: 'random-user-name',
+  user_email: 'user@apexon.com'
 }
 
 /** Add workflow */

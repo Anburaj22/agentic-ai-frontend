@@ -1,22 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import React from "react"
 import { Handle, Position, useReactFlow, type NodeProps } from "reactflow"
-import { ListTodo, ChevronDown, ChevronUp, Trash2, Copy, Settings } from "lucide-react"
+import { ListTodo, ChevronDown, ChevronUp, Copy } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Input } from "../ui/input"
 import { Textarea } from "../ui/textarea"
-import React from "react"
 
 export function TaskNode({ id, data, selected }: NodeProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [taskName, setTaskName] = useState(data?.task_name || "New Task");
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [taskName, setTaskName] = React.useState(data?.task_name || "New Task");
   const { setNodes } = useReactFlow();
   
-  const [nodeData, setNodeData] = useState({
+  const [nodeData, setNodeData] = React.useState({
     task_name: data?.task_name || "",
     task_description: data?.task_description || "",
     task_expected_op: data?.task_expected_op || ""
