@@ -504,7 +504,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     <div className="flex h-screen w-full">
       <SidebarProvider>
         <AppSidebar />
-        <div className="flex flex-1 flex-col h-screen">
+        <div className="flex flex-1 flex-col h-screen"  style={{overflow: 'hidden'}}>
           {showHeader && (
             <CrewHeader
               workflowData={workflow}
