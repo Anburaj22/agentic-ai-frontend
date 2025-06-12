@@ -1,5 +1,7 @@
+import React from "react";
 import { X } from "lucide-react"
 import './result-sidebar.css';
+import MDEditor from '@uiw/react-md-editor';
 
 interface ResultSidebarProps {
   isOpen: boolean
@@ -24,7 +26,11 @@ const ResultSidebar = ({isOpen, onClose, nodeId, output}: ResultSidebarProps) =>
           </div>
         </div>
         <div className="response-content">
-          {output ? output : ''}
+          {
+            output ?
+              (<MDEditor.Markdown source={output} style={{ whiteSpace: 'pre-wrap' }} />) :
+              (<>Nothing to show here</>)
+          }
         </div>
       </div>
     </>

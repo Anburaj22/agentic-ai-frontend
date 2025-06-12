@@ -382,7 +382,10 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     if(id) {
       executeWorkflow(id).then((resp: any)=> {
         setIsLoading(false);
-        setOutput(resp.data.output);
+        if(resp.data.status === 'success') {
+          toast.success('Workflow executed successfully, open result and click on "Show Result button"');
+          setOutput(resp.data.output);
+        }
       }).catch( (err: any) => {
         setIsLoading(false);
         const status = err.response.status;
