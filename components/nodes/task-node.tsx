@@ -95,6 +95,7 @@ export function TaskNode({ id, data, selected }: NodeProps) {
                 <Input
                   type="text"
                   name="task_name"
+                  className="nodrag"
                   value={nodeData.task_name}
                   placeholder="Name"
                   onChange={handleChange}
@@ -105,6 +106,7 @@ export function TaskNode({ id, data, selected }: NodeProps) {
                 <Textarea
                   name="task_description"
                   value={nodeData.task_description}
+                  className="nodrag"
                   placeholder="Description"
                   onChange={handleChange}
                 />
@@ -114,6 +116,7 @@ export function TaskNode({ id, data, selected }: NodeProps) {
                 <Textarea
                   name="task_expected_op"
                   value={nodeData.task_expected_op}
+                  className="nodrag"
                   placeholder="Expected Output"
                   onChange={handleChange}
                 />

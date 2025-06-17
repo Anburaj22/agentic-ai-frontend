@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import React from "react"
 
 interface ResultNodeProps extends NodeProps {
-  onOpenSidebar?: (nodeId: string) => void
+  onOpenSidebar: any
 }
 
 export function ResultNode({ id, data, selected, onOpenSidebar }: ResultNodeProps) {
@@ -29,53 +29,39 @@ export function ResultNode({ id, data, selected, onOpenSidebar }: ResultNodeProp
     }
   }, [data])
 
-  const handleChange = (e: any) => {
-    if (e.target) {
-      const { name, value } = e.target
-      const updatedData = { ...nodeData, [name]: value }
-      setNodeData(updatedData)
+  // const handleChange = (e: any) => {
+  //   if (e.target) {
+  //     const { name, value } = e.target
+  //     const updatedData = { ...nodeData, [name]: value }
+  //     setNodeData(updatedData)
 
-      setNodes((nodes) =>
-        nodes.map((node) => {
-          if (node.id === id) {
-            // Create a custom event with all the node data
-            const event = new CustomEvent("result-node-updated", {
-              detail: {
-                id,
-                data: updatedData,
-                position: {
-                  x: node.position.x,
-                  y: node.position.y,
-                },
-              },
-            })
+  //     setNodes((nodes) =>
+  //       nodes.map((node) => {
+  //         if (node.id === id) {
+  //           // Create a custom event with all the node data
+  //           const event = new CustomEvent("result-node-updated", {
+  //             detail: {
+  //               id,
+  //               data: updatedData,
+  //               position: {
+  //                 x: node.position.x,
+  //                 y: node.position.y,
+  //               },
+  //             },
+  //           })
 
-            // Dispatch the event
-            document.dispatchEvent(event)
-            return { ...node, data: { ...node.data, ...updatedData } }
-          }
-          return node
-        }),
-      )
-    }
-  }
+  //           // Dispatch the event
+  //           document.dispatchEvent(event)
+  //           return { ...node, data: { ...node.data, ...updatedData } }
+  //         }
+  //         return node
+  //       }),
+  //     )
+  //   }
+  // }
 
   const handleOpenSidebar = () => {
-    // console.log("ResultNode: Button clicked, nodeId:", id)
-    // console.log("ResultNode: onOpenSidebar prop:", onOpenSidebar)
-
-    // Try multiple approaches to open the sidebar
-    if (onOpenSidebar) {
-      onOpenSidebar(id)
-    } else if (data?.setShowResultSidebar) {
-      data.setShowResultSidebar(true)
-    } else {
-      // Fallback: dispatch a custom event
-      const event = new CustomEvent("open-result-sidebar", {
-        detail: { nodeId: id },
-      })
-      document.dispatchEvent(event)
-    }
+    onOpenSidebar();
   }
 
   return (

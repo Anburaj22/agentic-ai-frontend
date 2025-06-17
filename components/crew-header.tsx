@@ -7,30 +7,103 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Save, Play, Download, Upload, Share2, Undo, Redo } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
+import SettingMenu from "./setting-menu"
 
 interface CrewHeaderProps {
   workflowData?: any
+  setWorkflow?: any
+  setWorkflowName?: any
+  setWorkflowDescription?: any
   saveWorkflow: any
   runWorkflow: any
-  setWorkflowName: any
   buttonTitle: string
 }
 
-export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflowName, buttonTitle }: CrewHeaderProps) {
+export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWorkflowDescription, saveWorkflow, runWorkflow, buttonTitle }: CrewHeaderProps) {
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [fileContent, setFileContent] = React.useState('');
+  const [name, setName] = React.useState('');
+  const [description, setDescription] = React.useState('');
+
+  React.useEffect( () => {
+    if (workflowData) {
+      if (workflowData.workflow_name)
+        setName(workflowData.workflow_name);
+      if (workflowData.workflow_description)
+        setDescription(workflowData.workflow_description);
+    }
+  }, [workflowData]);
 
   const handleInputChange = (e: any) => {
-    setWorkflowName(e.target.value);
+    const { name, value } = e.target;
+    if(name === 'workflow_name') {
+      setName(value);
+      setWorkflowName(value);
+    }
+    if(name === 'workflow_description') {
+      setDescription(value);
+      setWorkflowDescription(value);
+    }
+  }
+
+  const exportWorkflow = () => {
+    const fileName = `${workflowData.workflow_name}.json`;
+    const jsonStr = JSON.stringify(workflowData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const handleFileChange = (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const json = JSON.parse(text);
+      setFileContent(json);
+    };
+    reader.readAsText(file);
+  }
+
+  React.useEffect( () => {
+    if(fileContent) {
+      setWorkflow(fileContent);
+    }
+  }, [fileContent]);
+
+  const handleUploadButtonClick = () => {
+    fileInputRef.current?.click();
   }
 
   return (
-    <header className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      style={{zIndex: '999'}}
+    >
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-6" />
         <Input
           placeholder="Untitled Flow"
           className="w-60 h-9 bg-background"
-          value={workflowData.workflow_name}
+          name='workflow_name'
+          value={name}
+          onChange={handleInputChange}
+        />
+        <Input
+          placeholder="Untitled Description"
+          className="w-60 h-9 bg-background"
+          name='workflow_description'
+          value={description}
           onChange={handleInputChange}
         />
       </div>
@@ -40,7 +113,7 @@ export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflo
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" disabled={true}>
                   <Undo className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -51,7 +124,7 @@ export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflo
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" disabled={true}>
                   <Redo className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -64,7 +137,7 @@ export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflo
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={exportWorkflow}>
                   <Download className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -72,21 +145,24 @@ export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflo
             </Tooltip>
           </TooltipProvider>
 
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleUploadButtonClick}>
                   <Upload className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Import Flow</TooltipContent>
+              <TooltipContent>
+                Import Flow
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" disabled={true}>
                   <Share2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -104,6 +180,8 @@ export function CrewHeader({ workflowData, saveWorkflow, runWorkflow, setWorkflo
           <Save /> {buttonTitle}
         </Button>
       </div>
+
+      <SettingMenu />
     </header>
   )
 }

@@ -19,3 +19,7 @@ export const getToolByName = async (toolId: string | number) => {
   const response = await axios.post(url, data);
   return response.data;
 }
+
+export const fileUploadForTool = async () => {
+  
+}

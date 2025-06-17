@@ -19,27 +19,12 @@ const AppSidebarFooter = () => {
 
   return (
     <RequireAuth>
-      <div className="flex gap-1" style={{ alignItems: "center" }}>
-        {mounted && (
-          <Button
-            variant="outline"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? <Sun /> : <Moon />}
-          </Button>
-        )}
-        <Link href="/workflows/new">
-          <Button className="bg-blue hover:bg-blue-dark">
-            <Plus />
-            New Workflow
-          </Button>
-        </Link>
-        <Link href="/">
-          <Button variant="outline" onClick={logout}>
-            <LogOut />
-          </Button>
-        </Link>
-      </div>
+      <Link href="/workflows/new">
+        <Button className="bg-blue hover:bg-blue-dark w-full">
+          <Plus />
+          New Workflow
+        </Button>
+      </Link>
     </RequireAuth>
   );
 };

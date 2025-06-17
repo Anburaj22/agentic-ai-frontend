@@ -172,3 +172,6 @@
 .bg-blue-primary:hover {background-color: #0056b3;}
 .text-blue-primary {color: #007bff;}
 .border-blue-primary {border-color: #007bff;}
+
+.spin-on-hover {transition: transform 0.5s ease-in-out;}
+.spin-on-hover:hover {transform: rotate(45deg);}

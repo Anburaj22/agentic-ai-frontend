@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React from "react"
 import { Handle, Position, useReactFlow, type NodeProps } from "reactflow"
 import { Brain, ChevronDown, ChevronUp, Copy } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,12 +15,12 @@ import { Checkbox } from "../ui/checkbox"
 import { Label } from "../ui/label"
 
 export function AgentNode({ id, data, selected }: NodeProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [agentName, setAgentName] = useState(data?.agent_name || "New Agent")
-  const [temperature, setTemperature] = useState(data?.agent_temprature || 0.5)
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [agentName, setAgentName] = React.useState(data?.agent_name || "New Agent")
+  const [temperature, setTemperature] = React.useState(data?.agent_temprature || 0.5)
   const { setNodes } = useReactFlow()
 
-  const [nodeData, setNodeData] = useState({
+  const [nodeData, setNodeData] = React.useState({
     agent_name: data?.agent_name || "",
     agent_role: data?.agent_role || "",
     agent_goal: data?.agent_goal || "",
@@ -34,7 +34,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
   })
 
   // Update local state when props change
-  useEffect(() => {
+  React.useEffect(() => {
     if (data) {
       setNodeData({
         agent_name: data.agent_name || nodeData.agent_name,
@@ -127,7 +127,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Input
                   placeholder="Agent Name"
-                  className="w-100 h-9 bg-background"
+                  className="w-100 h-9 bg-background nodrag"
                   name="agent_name"
                   value={nodeData.agent_name}
                   onChange={handleChange}
@@ -136,7 +136,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Input
                   placeholder="Role"
-                  className="w-100 h-9 bg-background"
+                  className="w-100 h-9 bg-background nodrag"
                   name="agent_role"
                   value={nodeData.agent_role}
                   onChange={handleChange}
@@ -145,7 +145,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Textarea
                   placeholder="Goal"
-                  className="w-100 bg-background"
+                  className="w-100 bg-background nodrag"
                   name="agent_goal"
                   value={nodeData.agent_goal}
                   onChange={handleChange}
@@ -154,7 +154,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Textarea
                   placeholder="Backstory"
-                  className="w-100 bg-background"
+                  className="w-100 bg-background nodrag"
                   name="agent_backstory"
                   value={nodeData.agent_backstory}
                   onChange={handleChange}
@@ -169,9 +169,9 @@ export function AgentNode({ id, data, selected }: NodeProps) {
                     <SelectValue placeholder="Select Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gpt4">OpenAI: gpt-4o</SelectItem>
-                    <SelectItem value="gpt4-mini">OpenAI: gpt-4o-mini</SelectItem>
-                    <SelectItem value="claude">Anthropic: Claude 3</SelectItem>
+                    <SelectItem value="gpt-4o">OpenAI: gpt-4o</SelectItem>
+                    <SelectItem value="gpt-4o-mini">OpenAI: gpt-4o-mini</SelectItem>
+                    <SelectItem value="anthropic.claude-3-sonnet-20240229-v1:0">Anthropic: Claude 3</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

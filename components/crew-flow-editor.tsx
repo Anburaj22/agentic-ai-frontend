@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+// import { useState, useCallback, useRef, useEffect } from "react"
 import ReactFlow, {
   Background,
   Controls,
@@ -28,20 +28,21 @@ import { ResultNode } from "./nodes/result-node"
 import { ToolNode } from "./nodes/tool-node"
 import { CustomEdge } from "./edges/custom-edge"
 import { initialNodes, initialEdges } from "@/lib/initial-flow"
+import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
 
 import ResultSidebar from "./result-sidebar"
 import { addWorkflow, executeWorkflow, getWorkflowById, updateWorkflow } from "@/services/WorkflowServices";
 import PreLoader from "./PreLoader"
-import { toast } from "react-toastify"
 
-const nodeTypes: NodeTypes = {
-  agent: AgentNode,
-  task: TaskNode,
-  knowledge: KnowledgeNode,
-  crew: CrewNode,
-  result: ResultNode,
-  tool: ToolNode,
-}
+// const nodeTypes: NodeTypes = {
+//   agent: AgentNode,
+//   task: TaskNode,
+//   knowledge: KnowledgeNode,
+//   crew: CrewNode,
+//   result: ResultNode,
+//   tool: ToolNode,
+// }
 
 const edgeTypes: EdgeTypes = {
   custom: CustomEdge,
@@ -77,74 +78,95 @@ interface NodeDataUpdate {
 
 interface WorkflowType {
   workflow_name: string,
+  workflow_description: string,
   nodes: NodeDataUpdate[]
 }
 
 function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
-  const reactFlowWrapper = useRef<HTMLDivElement>(null)
+  const router = useRouter();
+  const reactFlowWrapper = React.useRef<HTMLDivElement>(null)
+  const initializedRef = React.useRef(false);
+
+  const { project, screenToFlowPosition } = useReactFlow()
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-  const [selectedNode, setSelectedNode] = useState<string | null>(null)
-  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
-  const { project, screenToFlowPosition } = useReactFlow()
-  const [workflow, setWorkflow] = useState<WorkflowType>({workflow_name: 'New Workflow', nodes: []});
+  const [selectedNode, setSelectedNode] = React.useState<string | null>(null)
+  const [reactFlowInstance, setReactFlowInstance] = React.useState<any>(null)
+  const [workflow, setWorkflow] = React.useState<WorkflowType>({
+    workflow_name: 'New Workflow',
+    workflow_description: 'A simple workflow in which agents, tasks and tools works together',
+    nodes: []
+  });
   const [showResultSidebar, setShowResultSidebar] = React.useState(false);
   const [savedWorkflowId, setSavedWorkflowId] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [currentWorkflowName, setCurrentWorkflowName] = React.useState<string>(workflow.workflow_name);
-  const [selectedResultNodeId, setSelectedResultNodeId] = useState<string | null>(null)
-
-  const [resultSidebarOpen, setResultSidebarOpen] = useState(false)
+  const [currentWorkflowDesc, setCurrentWorkflowDesc] = React.useState<string>(workflow.workflow_description);
+  const [selectedResultNodeId, setSelectedResultNodeId] = React.useState<string | null>(null)
+  const [resultSidebarOpen, setResultSidebarOpen] = React.useState(false)
   const [output, setOutput] = React.useState<any>();
+  const [reactFlowReady, setReactFlowReady] = React.useState(false);
 
   /** Load workflow data based on workflowId */
-  useEffect(() => {
-    if (workflowId) {
-      /** Need to get workflow by its id */
-      if( workflowId !== 'new') {
-        setIsLoading(true);
-        getWorkflowById(workflowId).then( (resp: any) => {
-          setWorkflow(resp.data);
+  React.useEffect(() => {
+    /** Need to get workflow by its id */
+    if( workflowId && workflowId !== 'new' && reactFlowReady) {
+      setIsLoading(true);
+      getWorkflowById(workflowId).then( (resp: any) => {
+        const data = resp.data;
+        setWorkflow(data);
 
-          /** Parse respose to get nodes */
-          const generatedNodes = transformWorkflow(resp.data);
-          setNodes(generatedNodes);
+        /** Parse respose to get nodes */
+        const generatedNodes = transformWorkflow(data);
+        setNodes(generatedNodes);
 
-          /** Parse respose to get edged */
-          const generatedEdges = generateEdgesFromNodes(resp.data);
-          setEdges(generatedEdges);
+        /** Parse respose to get edged */
+        const generatedEdges = generateEdgesFromNodes(data);
+        setEdges(generatedEdges);
 
-          setIsLoading(false);
-        } ).catch( (err: any) => {
-          const status = err.response.status;
-          const data = err.response.data;
-          const errorMessage = data.message || data.error || 'Something went wrong';
-          toast.error(`Error ${status}: ${errorMessage}`);
-          setIsLoading(false);
-        } );
-      }
+        setIsLoading(false);
+      } ).catch( (err: any) => {
+        const status = err.response.status;
+        const data = err.response.data;
+        const errorMessage = data.message || data.error || 'Something went wrong';
+        toast.error(`Error ${status}: ${errorMessage}`);
+        setIsLoading(false);
+      } );
     }
-  }, [workflowId])
+  }, [workflowId, reactFlowReady])
 
-  const onConnect = useCallback(
+  /** Only works when we upload the file */
+  // React.useEffect(() => {
+  //   if (workflowId === 'new' && workflow.nodes.length && !initializedRef.current) {
+  //     initializedRef.current = true;
+
+  //     const generatedNodes = transformWorkflow(workflow);
+  //     setNodes(generatedNodes);
+
+  //     const generatedEdges = generateEdgesFromNodes(workflow);
+  //     setEdges(generatedEdges);
+  //   }
+  // }, [workflowId, workflow]);
+
+  const onConnect = React.useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, type: "custom" }, eds)),
     [setEdges],
   )
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
+  const onNodeClick = React.useCallback((_: React.MouseEvent, node: any) => {
     setSelectedNode(node.id)
   }, [])
 
-  const onPaneClick = useCallback(() => {
+  const onPaneClick = React.useCallback(() => {
     setSelectedNode(null)
   }, [])
 
-  const onDragOver = useCallback((event: React.DragEvent) => {
+  const onDragOver = React.useCallback((event: React.DragEvent) => {
     event.preventDefault()
     event.dataTransfer.dropEffect = "move"
   }, [])
 
-  const onDrop = useCallback((event: React.DragEvent) => {
+  const onDrop = React.useCallback((event: React.DragEvent) => {
     event.preventDefault();
     const type = event.dataTransfer.getData("application/reactflow/type");
     const name = event.dataTransfer.getData("application/reactflow/name");
@@ -188,7 +210,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [screenToFlowPosition, setNodes, showResultSidebar, setShowResultSidebar]);
 
   /** Handle keyboard events for deleting nodes */
-  useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Delete") {
         /** Get selected nodes */
@@ -219,7 +241,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [nodes, setNodes, setEdges])
 
   /** Handle node data updates */
-  const handleNodeDataUpdate = useCallback((update: NodeDataUpdate, currentEdges: Edge[]) => {
+  const handleNodeDataUpdate = React.useCallback((update: NodeDataUpdate, currentEdges: Edge[]) => {
     setWorkflow((prevWorkflow) => {
       const parents = currentEdges
         .filter(edge => edge.target === update.id)
@@ -252,8 +274,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     });
   }, []);
 
+
   /** Listen for agent node update events */
-  useEffect(() => {
+  React.useEffect(() => {
     const handleAgentNodeUpdated = (event: CustomEvent<NodeDataUpdate>) => {
       handleNodeDataUpdate(event.detail, edges);
     };
@@ -264,7 +287,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [edges, handleNodeDataUpdate]);
 
   /** Listen for tool node update events */
-  useEffect(() => {
+  React.useEffect(() => {
     const handleToolNodeUpdated = (event: CustomEvent<NodeDataUpdate>) => {
       handleNodeDataUpdate(event.detail, edges);
     };
@@ -275,7 +298,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [edges, handleNodeDataUpdate]);
 
   /** Listen for task node update events */
-  useEffect(() => {
+  React.useEffect(() => {
     const handleTaskNodeUpdated = (event: CustomEvent<NodeDataUpdate>) => {
       handleNodeDataUpdate(event.detail, edges);
     };
@@ -286,7 +309,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [edges, handleNodeDataUpdate]);
 
   /** Listen for result node upate events */
-  useEffect(() => {
+  React.useEffect(() => {
     const handleResultNodeUpdated = (event: CustomEvent<NodeDataUpdate>) => {
       handleNodeDataUpdate(event.detail, edges);
     };
@@ -296,7 +319,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     };
   }, [edges, handleNodeDataUpdate]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setWorkflow((prevWorkflow) => {
       const updatedNodes = prevWorkflow.nodes.map((node) => {
         const parents = edges
@@ -333,6 +356,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             setIsLoading(false);
             toast.success('Workflow saved successfully');
             setSavedWorkflowId(resp.data.id);
+            router.push(`/workflows/${resp.data.id}`);
           }
         }).catch((err: any) => {
           setIsLoading(false);
@@ -370,6 +394,12 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     setWorkflow( upWf );
   }
 
+  const setWorkflowDescription = (description: string) => {
+    setCurrentWorkflowDesc(description);
+    const upWf = {...workflow, workflow_description: description}
+    setWorkflow( upWf );
+  }
+
   const runWorkflow = () => {
     let id;
     if(workflowId !== 'new') {
@@ -394,6 +424,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         toast.error(`Error ${status}: ${errorMessage}`);
       });
     } else {
+      setIsLoading(false);
       toast.error('Need to save the workflow first');
     }
   }
@@ -455,14 +486,12 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     return edges;
   }
 
-  const handleOpenResultSidebar = useCallback((nodeId: string) => {
-    setSelectedResultNodeId(nodeId)
+  const handleOpenResultSidebar = React.useCallback(() => {
     setResultSidebarOpen(true)
   }, [])
 
-  const handleCloseResultSidebar = useCallback(() => {
+  const handleCloseResultSidebar = React.useCallback(() => {
     setResultSidebarOpen(false)
-    setSelectedResultNodeId(null)
   }, [])
 
   /** Memoize nodeTypes to prevent unnecessary re-renders */
@@ -478,51 +507,56 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     [],
   )
 
-  const reactFlowProps = React.useMemo(
-    () => ({
-      nodes,
-      edges,
-      onNodesChange,
-      onEdgesChange,
-      onConnect,
-      onNodeClick,
-      onPaneClick,
-      nodeTypes,
-      edgeTypes,
-      onDragOver,
-      onDrop,
-      onInit: setReactFlowInstance,
-      snapToGrid: true,
-      snapGrid: [15, 15] as [number, number],
-      defaultEdgeOptions: {
-        type: "custom",
-        animated: true,
-      },
-      defaultViewport: { x: 0, y: 0, zoom: 1 },
-      style: { backgroundColor: "#F7F9FB" },
-      deleteKeyCode: null,
-      nodesDraggable: true,
-      elementsSelectable: true,
-      zoomOnScroll: true,
-      zoomOnPinch: true,
-      panOnScroll: false,
-      preventScrolling: true,
-      attributionPosition: "bottom-left" as const,
-    }),
-    [nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, nodeTypes, onDragOver, onDrop],
-  )
+  // const reactFlowProps = React.useMemo(
+  //   () => ({
+  //     nodes,
+  //     edges,
+  //     onNodesChange,
+  //     onEdgesChange,
+  //     onConnect,
+  //     onNodeClick,
+  //     onPaneClick,
+  //     nodeTypes,
+  //     edgeTypes,
+  //     onDragOver,
+  //     onDrop,
+  //     onInit: setReactFlowInstance,
+  //     snapToGrid: true,
+  //     snapGrid: [15, 15] as [number, number],
+  //     defaultEdgeOptions: {
+  //       type: "custom",
+  //       animated: true,
+  //     },
+  //     defaultViewport: { x: 0, y: 0, zoom: 1 },
+  //     style: { backgroundColor: "#F7F9FB" },
+  //     deleteKeyCode: null,
+  //     nodesDraggable: true,
+  //     elementsSelectable: true,
+  //     zoomOnScroll: true,
+  //     zoomOnPinch: true,
+  //     panOnScroll: false,
+  //     preventScrolling: true,
+  //     attributionPosition: "bottom-left" as const,
+  //   }),
+  //   [nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, nodeTypes, onDragOver, onDrop],
+  // )
 
   return (
     <div className="flex h-screen w-full">
       <SidebarProvider>
         <AppSidebar />
-        <div className="flex flex-1 flex-col h-screen"  style={{overflow: 'hidden'}}>
+        <div className="flex flex-1 flex-col h-screen">
           {showHeader && (
             <CrewHeader
               workflowData={workflow}
+              setWorkflow={setWorkflow}
+
+              setWorkflowName={setWorkflowName}
+              setWorkflowDescription={setWorkflowDescription}
+
               saveWorkflow={saveWorkflow}
               runWorkflow={runWorkflow}
-              setWorkflowName={setWorkflowName}
+
               buttonTitle={workflowId === 'new' ? 'Save' : 'Update'}
             />
           )}
@@ -544,7 +578,8 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               edgeTypes={edgeTypes}
               onDragOver={onDragOver}
               onDrop={onDrop}
-              onInit={setReactFlowInstance}
+              // onInit={setReactFlowInstance}
+              onInit={() => setReactFlowReady(true)}
               snapToGrid
               snapGrid={[15, 15]}
               defaultEdgeOptions={{
@@ -560,6 +595,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
           </div>
         </div>
         {/* <ResultSidebar isOpen={showResultSidebar} onClose={setShowResultSidebar}></ResultSidebar> */}
+        {resultSidebarOpen}
         <ResultSidebar
           isOpen={resultSidebarOpen}
           onClose={handleCloseResultSidebar}

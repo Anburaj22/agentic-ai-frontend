@@ -136,15 +136,12 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
   const handleFieldChange = useCallback(
     (fieldName: string, value: any) => {
-      const updatedData = {
-        ...nodeData,
+      setNodeData((prevData) => ({
+        ...prevData,
         [fieldName]: value,
-      }
-
-      setNodeData(updatedData)
-      debouncedUpdate(updatedData)
+      }))
     },
-    [nodeData, debouncedUpdate],
+    []
   )
 
   const renderField = useCallback(
@@ -159,19 +156,20 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         value: fieldValue,
         onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
           handleFieldChange(fieldName, e.target.value),
+        onBlur: () => debouncedUpdate({ ...nodeData, [fieldName]: nodeData[fieldName] }),
+        className: "nodrag",
       }
 
       const fieldType = config.type
 
       return (
         <div className="grid gap-1" key={fieldName}>
-          {fieldType === "textarea" ? (
-            <Textarea {...commonProps} className="resize-none" rows={3} placeholder={config.description} />
-          ) : fieldType === "number" ? (
-            <Input {...commonProps} type="number" placeholder={config.description} />
-          ) : (
-            <Input {...commonProps} type="text" placeholder={config.description} />
-          )}
+          {
+            fieldType === "textarea" ?
+              (<Textarea {...commonProps} className="resize-none nodrag" rows={3} placeholder={config.description} />) :
+            fieldType === "number" ? (<Input {...commonProps} type="number" placeholder={config.description} />) :
+              (<Input {...commonProps} type="text" placeholder={config.description} />)
+          }
           {/* {config.description && <p className="text-xs text-muted-foreground mt-1">{config.description}</p>} */}
         </div>
       )
@@ -204,12 +202,10 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         <CollapsibleContent>
           <CardContent className="p-4 pt-0">
             <div className="space-y-3">
-              {/* Tool Selection */}
               <div className="grid gap-1">
                 <Label className="text-xs font-medium text-muted-foreground">Select Tool</Label>
                 <Select
                   value={nodeData.tool_name || ""}
-                  // onValueChange={handleToolSelection}
                   onValueChange={(value) => handleChange({ target: { name: "tool_name", value } })}
                 >
                   <SelectTrigger>

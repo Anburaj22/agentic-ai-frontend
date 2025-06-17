@@ -4,13 +4,14 @@ import React from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { FlowerIcon as FlowIcon, Search, Calendar, Users, Trash2, ChartNetwork } from "lucide-react"
+import { FlowerIcon as FlowIcon, Search, Calendar, Users, Trash2, ChartNetwork, Settings } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from 'react-toastify';
 
 import RequireAuth from "@/components/RequireAuth"
 import { deleteWorkflow, getWorkflow } from "@/services/WorkflowServices"
 import PreLoader from "@/components/PreLoader"
+import SettingMenu from "@/components/setting-menu"
 
 export default function WorkflowsPage() {
 
@@ -26,7 +27,6 @@ export default function WorkflowsPage() {
     getWorkflow().then((resp: any) => {
       const updatedData = resp.data.map((item: any) => ({
         ...item,
-        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
         icon: ChartNetwork,
         color: 'bg-blue-500/10 text-blue-500',
         lastEdited: formatDate(item.updated_at),
@@ -101,7 +101,7 @@ export default function WorkflowsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Workflows</h1>
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -112,6 +112,7 @@ export default function WorkflowsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            <SettingMenu />
           </div>
         </div>
 
@@ -133,7 +134,7 @@ export default function WorkflowsPage() {
                     {workflow.workflow_name}
                   </Link>
                 </h3>
-                <p className="text-xs text-muted-foreground mb-4">{workflow.description}</p>
+                <p className="text-xs text-muted-foreground mb-4">{workflow.workflow_description}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {showStatus(workflow.status)}
