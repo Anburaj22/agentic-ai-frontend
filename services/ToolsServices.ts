@@ -20,6 +20,15 @@ export const getToolByName = async (toolId: string | number) => {
   return response.data;
 }
 
-export const fileUploadForTool = async () => {
-  
+export const fileUploadForTool = async (formData: any) => {
+  const url = `${baseUrl}/data/upload/`;
+  const response = await axios.post(url, formData);
+  return response.data;
+}
+
+export const getUploadedFileByName = async ( fileName: String) => {
+  const url = `${baseUrl}/data/get_files/`;
+  const data = {...metaData, file_name: fileName};
+  const response = await axios.post(url, data);
+  return response.data;
 }

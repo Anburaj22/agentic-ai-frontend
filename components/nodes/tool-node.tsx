@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useCallback, useEffect, useState, memo } from "react"
 import { Handle, Position, useReactFlow, type NodeProps } from "reactflow"
 import { Wrench, ChevronDown, ChevronUp, Copy } from "lucide-react"
@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Input } from "../ui/input"
 import { Textarea } from "../ui/textarea"
 import { Label } from "../ui/label"
-import { getTools } from "@/services/ToolsServices";
+import { fileUploadForTool, getTools, getUploadedFileByName } from "@/services/ToolsServices";
+import { toast } from "react-toastify"
 
 function ToolNodeComponent({ id, data, selected }: NodeProps) {
   const { setNodes } = useReactFlow()
@@ -22,6 +23,10 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   const [allTools, setAllTools] = useState<any[]>([])
   const [selectedTool, setSelectedTool] = useState<any>(null)
   const [schema, setSchema] = useState<any>({})
+  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<String>('');
+  const [filePath, setFilePath] = React.useState<any>('');
+
 
   // Complete node data including dynamic fields
   const [nodeData, setNodeData] = useState<{ [key: string]: any }>({
@@ -61,7 +66,9 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
           }
         }
       })
-      .catch(console.error)
+      .catch( (err) => {
+        toast.error(err.message)
+      })
   }, [data?.tool_name])
 
   // Debounced update function
@@ -144,38 +151,99 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
     []
   )
 
-  const renderField = useCallback(
-    (fieldName: string, config: any) => {
-      const fieldValue = nodeData[fieldName] || config.default || ""
+  const doFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let fileNameLocal = '';
+    if(e.target.files && e.target.files.length > 0) {
 
-      const commonProps = {
-        id: `${id}-${fieldName}`,
-        name: fieldName,
-        required: config.required,
-        placeholder: config.description || fieldName,
-        value: fieldValue,
-        onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-          handleFieldChange(fieldName, e.target.value),
-        onBlur: () => debouncedUpdate({ ...nodeData, [fieldName]: nodeData[fieldName] }),
-        className: "nodrag",
-      }
+      /** Set data in state */
+      setFile(e.target.files[0]);
+      setFileName(e.target.files[0].name);
+      fileNameLocal = e.target.files[0].name
 
-      const fieldType = config.type
+      /** Create file data object */
+      const formData = new FormData();
+      formData.append('files', e.target.files[0]);
+      
+      /** Call API to upload file, immedietly after an upload */
+      fileUploadForTool(formData).then( (resp: any) => {
+        /** Once file is uploaded call the service to get file path */
+        getUploadedFileByName(fileNameLocal).then( (resp: any) => {
+          setFilePath(resp.file_url);
+        } ).catch( (err: any) => {
+          console.log(err);
+        } );
+      } ).catch( (err: any) => {
+        console.log(err);
+      } );      
+    }
+  }
 
-      return (
-        <div className="grid gap-1" key={fieldName}>
-          {
-            fieldType === "textarea" ?
-              (<Textarea {...commonProps} className="resize-none nodrag" rows={3} placeholder={config.description} />) :
-            fieldType === "number" ? (<Input {...commonProps} type="number" placeholder={config.description} />) :
-              (<Input {...commonProps} type="text" placeholder={config.description} />)
-          }
-          {/* {config.description && <p className="text-xs text-muted-foreground mt-1">{config.description}</p>} */}
-        </div>
-      )
-    },
+  const renderField = useCallback((fieldName: string, config: any) => {
+    const fieldValue = nodeData[fieldName] || config.default || ""
+
+    const commonProps = {
+      id: `${id}-${fieldName}`,
+      name: fieldName,
+      required: config.required,
+      placeholder: config.description || fieldName,
+      value: fieldValue,
+      onBlur: () => debouncedUpdate({ ...nodeData, [fieldName]: nodeData[fieldName] }),
+      className: "nodrag",
+    }
+
+    const fieldType = config.type
+
+    return (
+      <div className="grid gap-1" key={fieldName}>
+        {fieldType === 'textarea' && (
+          <Textarea
+            {...commonProps}
+            className="resize-none nodrag"
+            rows={3}
+            placeholder={config.description}
+            onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
+          />
+        )}
+        {fieldType === 'fileupload' && (
+          <input
+            {...commonProps}
+            type='file'
+            placeholder={config.description}
+            onChange={doFileUpload}
+          />
+        )}
+        {(fieldType === 'text' || fieldType === 'number'  )  && (
+          <>
+            {/* {(toolName === 'PdfSearchTool' && fieldName === 'pdf_path') ? ( */}
+            {(fieldName === 'pdf_path') ? (
+              <Input
+                {...commonProps}
+                type={fieldType}
+                placeholder={config.description}
+                onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
+                value={filePath}
+              />
+            ) : (
+              <Input
+                {...commonProps}
+                type={fieldType}
+                placeholder={config.description}
+                onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
+              />
+            )}
+          </>
+        )}
+      </div>
+    )},
     [id, nodeData, handleFieldChange],
   )
+
+  useEffect(() => {
+    if (toolName === 'PdfSearchTool' && filePath) {
+      handleFieldChange('pdf_path', filePath);
+      debouncedUpdate({ ...nodeData, pdf_path: filePath });
+    }
+  }, [filePath]);
 
   return (
     <Card className={`w-80 shadow-md node-type-tool`}>
