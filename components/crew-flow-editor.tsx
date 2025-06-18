@@ -209,37 +209,6 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
 
   }, [screenToFlowPosition, setNodes, showResultSidebar, setShowResultSidebar]);
 
-  /** Handle keyboard events for deleting nodes */
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Delete") {
-        /** Get selected nodes */
-        const selectedNodes = nodes.filter((node) => node.selected);
-        if (selectedNodes.length === 0)
-          return
-
-        /** Get IDs of selected nodes */
-        const selectedNodeIds = selectedNodes.map((node) => node.id)
-
-        /** Remove selected nodes */
-        setNodes((nodes) => nodes.filter((node) => !selectedNodeIds.includes(node.id)))
-
-        /** Remove edges connected to deleted nodes */
-        setEdges((edges) =>
-          edges.filter((edge) => !selectedNodeIds.includes(edge.source) && !selectedNodeIds.includes(edge.target)),
-        )
-      }
-    }
-
-    // Add event listener
-    document.addEventListener("keydown", handleKeyDown)
-
-    // Clean up
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [nodes, setNodes, setEdges])
-
   /** Handle node data updates */
   const handleNodeDataUpdate = React.useCallback((update: NodeDataUpdate, currentEdges: Edge[]) => {
     setWorkflow((prevWorkflow) => {

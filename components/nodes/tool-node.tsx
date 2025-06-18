@@ -178,7 +178,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   )
 
   return (
-    <Card className="w-80 shadow-md tool-node">
+    <Card className={`w-80 shadow-md node-type-tool`}>
       <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0">
         <div className="flex items-center space-x-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-md bg-orange-500/10 text-orange-500">

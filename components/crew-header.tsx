@@ -8,6 +8,7 @@ import { Save, Play, Download, Upload, Share2, Undo, Redo } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
 import SettingMenu from "./setting-menu"
+import { toast } from "react-toastify"
 
 interface CrewHeaderProps {
   workflowData?: any
@@ -42,23 +43,29 @@ export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWork
       setWorkflowName(value);
     }
     if(name === 'workflow_description') {
-      setDescription(value);
-      setWorkflowDescription(value);
+      if(value.length <= 150) {
+        setDescription(value);
+        setWorkflowDescription(value);
+      }
     }
   }
 
   const exportWorkflow = () => {
-    const fileName = `${workflowData.workflow_name}.json`;
-    const jsonStr = JSON.stringify(workflowData, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if(workflowData.nodes.length) {
+      const fileName = `${workflowData.workflow_name}.json`;
+      const jsonStr = JSON.stringify(workflowData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      toast.error('Unable to export empty workflow');
+    }
   }
 
   const handleFileChange = (e: any) => {
@@ -99,13 +106,22 @@ export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWork
           value={name}
           onChange={handleInputChange}
         />
-        <Input
-          placeholder="Untitled Description"
-          className="w-60 h-9 bg-background"
-          name='workflow_description'
-          value={description}
-          onChange={handleInputChange}
-        />
+        <div className="input-wrapper flex flex-col">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Input
+                  placeholder="Untitled Description"
+                  className="w-60 h-9 bg-background"
+                  name='workflow_description'
+                  value={description}
+                  onChange={handleInputChange}
+                />
+              </TooltipTrigger>
+              <TooltipContent>Only 150 characters allowed</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       <div className="flex-1 flex justify-center">
@@ -149,7 +165,7 @@ export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWork
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handleUploadButtonClick}>
+                <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={true}>
                   <Upload className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>

@@ -149,14 +149,15 @@
 /** custom nodes outline color : start */
 .react-flow__node .node-type-agent {@apply ring-1 ring-blue-500 shadow-lg;}
 .react-flow__node.selected .node-type-agent{@apply ring-2 ring-blue-500 shadow-lg;}
+
 .react-flow__node .node-type-task {@apply ring-1 ring-green-500 shadow-lg;}
 .react-flow__node.selected .node-type-task{@apply ring-2 ring-green-500 shadow-lg;}
-.react-flow__node .node-type-knowledge {@apply ring-1 ring-purple-500 shadow-lg;}
-.react-flow__node.selected .node-type-knowledge{@apply ring-2 ring-purple-500 shadow-lg;}
+
 .react-flow__node .node-type-result {@apply ring-1 ring-amber-500 shadow-lg;}
 .react-flow__node.selected .node-type-result{@apply ring-2 ring-amber-500 shadow-lg;}
-.react-flow__node .tool-type-agent {@apply ring-1 ring-orange-500 shadow-lg;}
-.react-flow__node.selected .tool-type-agent{@apply ring-2 ring-orange-500 shadow-lg;}
+
+.react-flow__node .node-type-tool {@apply ring-1 ring-orange-500 shadow-lg;}
+.react-flow__node.selected .node-type-tool{@apply ring-2 ring-orange-500 shadow-lg;}
 /** custom nodes outline color : end */
 .react-flow__handle {
 	background: transparent !important;
