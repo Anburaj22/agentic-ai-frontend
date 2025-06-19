@@ -32,9 +32,9 @@ export const getWorkflowById = async (workflowId: number | string) => {
 }
 
 /** Run workflow by ID */
-export const executeWorkflow = async (workflowId: number | string) => {
+export const executeWorkflow = async (workflowId: number | string, data: any) => {
   const url = `${baseUrl}/workflows/${workflowId}/run`;
-  const response = await axios.post(url, metaData);
+  const response = await axios.post(url, {prompt: data.prompt, file_path: data.file_path});
   return response;
 }
 

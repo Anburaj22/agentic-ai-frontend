@@ -197,7 +197,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               </div>
               <div className="grid gap-1">
                 <label className="text-xs font-medium text-muted-foreground">Max Iterations</label>
-                <Input type="number" value={nodeData.agent_iteration} name="agent_iteration" onChange={handleChange} />
+                <Input type="number" value={nodeData.agent_iteration} name="agent_iteration" onChange={handleChange} className="nodrag" />
               </div>
               <div className="grid gap-1">
                 <div className="flex items-center space-x-2 mb-1">

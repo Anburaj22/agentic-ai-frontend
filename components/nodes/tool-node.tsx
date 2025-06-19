@@ -178,8 +178,23 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
     }
   }
 
+  useEffect(() => {
+    if (schema && Object.keys(schema).length > 0 && data) {
+      const newData: Record<string, any> = {};
+      for (const fieldName of Object.keys(schema)) {
+        if (data[fieldName] !== undefined) {
+          newData[fieldName] = data[fieldName];
+        } else if (schema[fieldName].default !== undefined) {
+          newData[fieldName] = schema[fieldName].default;
+        }
+      }
+
+      setNodeData(prev => ({ ...prev, ...newData }));
+    }
+  }, [schema, data]);
+
   const renderField = useCallback((fieldName: string, config: any) => {
-    const fieldValue = nodeData[fieldName] || config.default || ""
+    const fieldValue = nodeData[fieldName] ?? config.default ?? "";
 
     const commonProps = {
       id: `${id}-${fieldName}`,
@@ -221,7 +236,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
                 type={fieldType}
                 placeholder={config.description}
                 onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
-                value={filePath}
+                value={nodeData[fieldName]}
               />
             ) : (
               <Input

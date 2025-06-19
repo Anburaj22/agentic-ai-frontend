@@ -370,6 +370,18 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }
 
   const runWorkflow = () => {
+    const newPayload = {
+      prompt: '',
+      file_path: '',
+    };
+    for (const item of workflow.nodes) {
+      if (item.data?.pdf_path && 'query' in item.data) {
+        newPayload.prompt = item.data.query;
+        newPayload.file_path = item.data.pdf_path;
+        break;
+      }
+    }
+
     let id;
     if(workflowId !== 'new') {
       id = workflowId;
@@ -379,7 +391,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     
     setIsLoading(true);
     if(id) {
-      executeWorkflow(id).then((resp: any)=> {
+      executeWorkflow(id, newPayload).then((resp: any)=> {
         setIsLoading(false);
         if(resp.data.status === 'success') {
           toast.success('Workflow executed successfully, open result and click on "Show Result button"');
