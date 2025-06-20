@@ -158,7 +158,14 @@
 
 .react-flow__node .node-type-tool {@apply ring-1 ring-orange-500 shadow-lg;}
 .react-flow__node.selected .node-type-tool{@apply ring-2 ring-orange-500 shadow-lg;}
+
+.react-flow__node .node-type-chat-input {@apply ring-1 ring-cyan-500 shadow-lg;}
+.react-flow__node.selected .node-type-chat-input{@apply ring-2 ring-cyan-500 shadow-lg;}
+
+.react-flow__node .node-type-chat-output {@apply ring-1 ring-indigo-500 shadow-lg;}
+.react-flow__node.selected .node-type-chat-output{@apply ring-2 ring-indigo-500 shadow-lg;}
 /** custom nodes outline color : end */
+
 .react-flow__handle {
 	background: transparent !important;
 	width: 10px !important;

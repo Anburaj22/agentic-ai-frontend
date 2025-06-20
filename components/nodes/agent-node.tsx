@@ -145,7 +145,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Textarea
                   placeholder="Goal"
-                  className="w-100 bg-background nodrag"
+                  className="bg-background nodrag"
                   name="agent_goal"
                   value={nodeData.agent_goal}
                   onChange={handleChange}
@@ -154,7 +154,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Textarea
                   placeholder="Backstory"
-                  className="w-100 bg-background nodrag"
+                  className="bg-background nodrag"
                   name="agent_backstory"
                   value={nodeData.agent_backstory}
                   onChange={handleChange}

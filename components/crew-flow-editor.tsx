@@ -30,6 +30,8 @@ import { CustomEdge } from "./edges/custom-edge"
 import { initialNodes, initialEdges } from "@/lib/initial-flow"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import { ChatInputNode } from "./nodes/chat-input-node"
+import { ChatOutputNode } from "./nodes/chat-output-node"
 
 import ResultSidebar from "./result-sidebar"
 import { addWorkflow, executeWorkflow, getWorkflowById, updateWorkflow } from "@/services/WorkflowServices";
@@ -109,32 +111,36 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
 
   /** Load workflow data based on workflowId */
   React.useEffect(() => {
-    /** Need to get workflow by its id */
-    if( workflowId && workflowId !== 'new' && reactFlowReady) {
+    if (workflowId && workflowId !== 'new' && reactFlowReady && reactFlowInstance) {
       setIsLoading(true);
-      getWorkflowById(workflowId).then( (resp: any) => {
-        const data = resp.data;
-        setWorkflow(data);
+      getWorkflowById(workflowId)
+        .then((resp: any) => {
+          const data = resp.data;
+          setWorkflow(data);
 
-        /** Parse respose to get nodes */
-        const generatedNodes = transformWorkflow(data);
-        setNodes(generatedNodes);
+          const generatedNodes = transformWorkflow(data);
+          const generatedEdges = generateEdgesFromNodes(data);
+          setNodes(generatedNodes);
+          setEdges(generatedEdges);
 
-        /** Parse respose to get edged */
-        const generatedEdges = generateEdgesFromNodes(data);
-        setEdges(generatedEdges);
-
-        setIsLoading(false);
-      } ).catch( (err: any) => {
-        const status = err.response.status;
-        const data = err.response.data;
-        const errorMessage = data.message || data.error || 'Something went wrong';
-        toast.error(`Error ${status}: ${errorMessage}`);
-        setIsLoading(false);
-      } );
+          /** Fit the viewport to ensure nodes render in the visible area */
+          if (generatedNodes.length > 0) {
+            setTimeout(() => {
+              reactFlowInstance.fitView({ padding: 0.2 });
+            }, 100);
+          }
+          setIsLoading(false);
+        })
+        .catch((err: any) => {
+          const status = err.response?.status;
+          const data = err.response?.data;
+          const errorMessage = data?.message || data?.error || 'Something went wrong';
+          toast.error(`Error ${status}: ${errorMessage}`);
+          setIsLoading(false);
+        });
     }
-  }, [workflowId, reactFlowReady])
-
+  }, [workflowId, reactFlowReady, reactFlowInstance]);
+  
   /** Only works when we upload the file */
   // React.useEffect(() => {
   //   if (workflowId === 'new' && workflow.nodes.length && !initializedRef.current) {
@@ -242,7 +248,6 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       };
     });
   }, []);
-
 
   /** Listen for agent node update events */
   React.useEffect(() => {
@@ -484,49 +489,37 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       crew: CrewNode,
       result: (props: any) => <ResultNode {...props} onOpenSidebar={handleOpenResultSidebar} />,
       tool: ToolNode,
-    }),
-    [],
+      "chat-input": ChatInputNode,
+      "chat-output": ChatOutputNode,
+    }), []
   )
 
-  // const reactFlowProps = React.useMemo(
-  //   () => ({
-  //     nodes,
-  //     edges,
-  //     onNodesChange,
-  //     onEdgesChange,
-  //     onConnect,
-  //     onNodeClick,
-  //     onPaneClick,
-  //     nodeTypes,
-  //     edgeTypes,
-  //     onDragOver,
-  //     onDrop,
-  //     onInit: setReactFlowInstance,
-  //     snapToGrid: true,
-  //     snapGrid: [15, 15] as [number, number],
-  //     defaultEdgeOptions: {
-  //       type: "custom",
-  //       animated: true,
-  //     },
-  //     defaultViewport: { x: 0, y: 0, zoom: 1 },
-  //     style: { backgroundColor: "#F7F9FB" },
-  //     deleteKeyCode: null,
-  //     nodesDraggable: true,
-  //     elementsSelectable: true,
-  //     zoomOnScroll: true,
-  //     zoomOnPinch: true,
-  //     panOnScroll: false,
-  //     preventScrolling: true,
-  //     attributionPosition: "bottom-left" as const,
-  //   }),
-  //   [nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodeClick, onPaneClick, nodeTypes, onDragOver, onDrop],
-  // )
+  /** Sync latest node positions into workflow state */
+  React.useEffect(() => {
+    setWorkflow(prev => {
+      const updatedNodes = prev.nodes.map((storedNode) => {
+        const liveNode = nodes.find(n => n.id === storedNode.id);
+        if (liveNode) {
+          return {
+            ...storedNode,
+            position: liveNode.position,
+          };
+        }
+        return storedNode;
+      });
+
+      return {
+        ...prev,
+        nodes: updatedNodes,
+      };
+    });
+  }, [nodes]);
 
   return (
     <div className="flex h-screen w-full">
       <SidebarProvider>
         <AppSidebar />
-        <div className="flex flex-1 flex-col h-screen">
+        <div className="flex flex-1 flex-col h-screen" style={{overflow: 'hidden'}}>
           {showHeader && (
             <CrewHeader
               workflowData={workflow}
@@ -559,8 +552,10 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               edgeTypes={edgeTypes}
               onDragOver={onDragOver}
               onDrop={onDrop}
-              // onInit={setReactFlowInstance}
-              onInit={() => setReactFlowReady(true)}
+              onInit={(instance) => {
+                setReactFlowInstance(instance);
+                setReactFlowReady(true);
+              }}
               snapToGrid
               snapGrid={[15, 15]}
               defaultEdgeOptions={{
@@ -569,6 +564,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               }}
               defaultViewport={{ x: 0, y: 0, zoom: 1 }} // Set default viewport
               style={{ backgroundColor: "#F7F9FB" }}
+              fitView
             >
               <Background gap={12} size={1} />
               <Controls />

@@ -94,7 +94,7 @@ export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWork
   return (
     <header
       className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      style={{zIndex: '999'}}
+      style={{zIndex: '999', overflowX: 'auto'}}
     >
       <div className="flex items-center gap-2">
         <SidebarTrigger />
