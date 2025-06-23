@@ -564,7 +564,6 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               }}
               defaultViewport={{ x: 0, y: 0, zoom: 1 }} // Set default viewport
               style={{ backgroundColor: "#F7F9FB" }}
-              fitView
             >
               <Background gap={12} size={1} />
               <Controls />

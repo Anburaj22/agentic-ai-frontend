@@ -24,9 +24,9 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   const [selectedTool, setSelectedTool] = useState<any>(null)
   const [schema, setSchema] = useState<any>({})
   const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState<String>('');
+  const [fileName, setFileName] = useState<String>('No file selected');
   const [filePath, setFilePath] = React.useState<any>('');
-
+  const [isDisable, setIsDisable] = React.useState<boolean>(true);
 
   // Complete node data including dynamic fields
   const [nodeData, setNodeData] = useState<{ [key: string]: any }>({
@@ -157,6 +157,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
       /** Set data in state */
       setFile(e.target.files[0]);
+      console.log(e.target.files[0].name);
       setFileName(e.target.files[0].name);
       fileNameLocal = e.target.files[0].name
 
@@ -220,12 +221,32 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
           />
         )}
         {fieldType === 'fileupload' && (
-          <input
-            {...commonProps}
-            type='file'
-            placeholder={config.description}
-            onChange={doFileUpload}
-          />
+          <>
+            <div
+              className="file-input-group flex items-center"
+              style={{
+                border: 'solid 1px #dfdfdf',
+                paddingLeft: '0.5rem',
+                borderRadius: '0.5rem',
+                color: 'darkgray'
+              }}
+            >
+              <span className="file-name text-sm flex-grow">{fileName}</span>
+              <div className="file-upload-group relative overflow-hidden">
+                <label className="cursor-pointer inline-block">
+                  <input
+                    {...commonProps}
+                    type="file"
+                    onChange={doFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Button className="bg-blue hover:bg-blue-dark w-full px-3 py-2 text-xs">
+                    Upload
+                  </Button>
+                </label>
+              </div>
+            </div>
+          </>
         )}
         {(fieldType === 'text' || fieldType === 'number'  )  && (
           <>
@@ -237,6 +258,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
                 placeholder={config.description}
                 onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
                 value={nodeData[fieldName]}
+                disabled={isDisable}
               />
             ) : (
               <Input

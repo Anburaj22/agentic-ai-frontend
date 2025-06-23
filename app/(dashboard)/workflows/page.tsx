@@ -4,7 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { FlowerIcon as FlowIcon, Search, Calendar, Users, Trash2, ChartNetwork, Settings } from "lucide-react"
+import { FlowerIcon as FlowIcon, Search, Calendar, Users, Trash2, ChartNetwork } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from 'react-toastify';
 
@@ -17,6 +17,7 @@ export default function WorkflowsPage() {
 
   const [allWorkflows, setAllWorkflows] = React.useState<any>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = React.useState("")
 
   React.useEffect( () => {
     getAllWorkflow();
@@ -49,12 +50,9 @@ export default function WorkflowsPage() {
     return obj.nodes.filter((node: any) => typeof node.id === 'string' && node.id.startsWith(`${key}-`)).length;
   }
 
-  const [searchQuery, setSearchQuery] = React.useState("")
-
   const filteredWorkflows = allWorkflows.filter(
     (workflow: any) =>
-      workflow.workflow_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      workflow.description.toLowerCase().includes(searchQuery.toLowerCase()),
+      workflow.workflow_name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const showStatus = (status: string) => {
@@ -95,6 +93,14 @@ export default function WorkflowsPage() {
     }
   }
 
+  const truncateByWords = (str: string, maxLength: number, addEllipsis = true) => {
+    if (typeof str !== 'string') return '';
+    if (str.length <= maxLength) return str;
+    return addEllipsis
+      ? str.slice(0, maxLength) + '...'
+      : str.slice(0, maxLength);
+  }
+
   return (
     <RequireAuth>
       {isLoading ? (<PreLoader />) : (<></>)}
@@ -130,11 +136,24 @@ export default function WorkflowsPage() {
                   </div>
                 </div>
                 <h3 className="text-xl font-normal mb-2">
-                  <Link className="cursor-pointer" href={`/workflows/${workflow.id}`} key={workflow.id}>
-                    {workflow.workflow_name}
+                  <Link
+                    className="cursor-pointer"
+                    href={`/workflows/${workflow.id}`}
+                    key={workflow.id}
+                    title={workflow.workflow_name}
+                  >
+                    {truncateByWords(workflow.workflow_name, 25)}
                   </Link>
                 </h3>
-                <p className="text-xs text-muted-foreground mb-4">{workflow.workflow_description}</p>
+                <p
+                  className="text-xs text-muted-foreground mb-4 description"
+                  style={{
+                    maxHeight: 'calc(1em * 5)',
+                    height: 'calc(1em * 5)'
+                  }}
+                >
+                  {workflow.workflow_description}
+                </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {showStatus(workflow.status)}

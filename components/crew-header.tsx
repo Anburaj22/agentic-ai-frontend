@@ -7,8 +7,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Save, Play, Download, Upload, Share2, Undo, Redo } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
-import SettingMenu from "./setting-menu"
 import { toast } from "react-toastify"
+
+import SettingMenu from "./setting-menu"
 
 interface CrewHeaderProps {
   workflowData?: any
@@ -94,7 +95,7 @@ export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWork
   return (
     <header
       className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      style={{zIndex: '999', overflowX: 'auto'}}
+      style={{zIndex: '999'}}
     >
       <div className="flex items-center gap-2">
         <SidebarTrigger />

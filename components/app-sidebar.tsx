@@ -29,34 +29,13 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="flex items-center justify-center py-4">
+      <SidebarHeader className="p-4">
         <Link href="/workflows">
           <Logo />
         </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Workflows"
-                  isActive={isActive("/workflows")}
-                >
-                  <Link href="/workflows">
-                    <FlowIcon className="h-5 w-5" />
-                    <span>Workflows</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Node Palette</SidebarGroupLabel>
           <SidebarGroupContent>
             <NodePalette />
           </SidebarGroupContent>

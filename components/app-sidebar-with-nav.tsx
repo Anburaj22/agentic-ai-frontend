@@ -30,7 +30,7 @@ export function AppSidebarWithNav() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="flex items-center justify-center py-4">
+      <SidebarHeader className="p-4">
         <Link href="/workflows">
           <Logo />
         </Link>
