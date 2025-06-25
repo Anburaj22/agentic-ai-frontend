@@ -19,9 +19,19 @@ interface CrewHeaderProps {
   saveWorkflow: any
   runWorkflow: any
   buttonTitle: string
+  disableRunBtn: boolean
 }
 
-export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWorkflowDescription, saveWorkflow, runWorkflow, buttonTitle }: CrewHeaderProps) {
+export function CrewHeader({
+  workflowData,
+  setWorkflow,
+  setWorkflowName,
+  setWorkflowDescription,
+  saveWorkflow,
+  runWorkflow,
+  buttonTitle,
+  disableRunBtn
+}: CrewHeaderProps) {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [fileContent, setFileContent] = React.useState('');
@@ -190,7 +200,7 @@ export function CrewHeader({ workflowData, setWorkflow, setWorkflowName, setWork
       </div>
 
       <div className="flex items-center gap-4">
-        <Button className="bg-blue hover:bg-blue-dark" onClick={runWorkflow}>
+        <Button className="bg-blue hover:bg-blue-dark" onClick={runWorkflow} disabled={disableRunBtn}>
           <Play /> Run
         </Button>
         <Button className="bg-blue hover:bg-blue-dark" onClick={saveWorkflow} >

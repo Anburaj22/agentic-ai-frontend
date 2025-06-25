@@ -123,7 +123,8 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
       /** Reset dynamic field values when changing tools */
       const newNodeData = {
-        tool_name: selected_tool_id,
+        tool_name: tool.name,
+        tool_id: selected_tool_id,
         tool_description: tool.description,
         tool_class_name: tool.class_name,
       }
@@ -249,7 +250,6 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         )}
         {(fieldType === 'text' || fieldType === 'number'  )  && (
           <>
-            {/* {(toolName === 'PdfSearchTool' && fieldName === 'pdf_path') ? ( */}
             {(fieldName === 'pdf_path') ? (
               <Input
                 {...commonProps}
@@ -275,7 +275,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   )
 
   useEffect(() => {
-    if (toolName === 'PdfSearchTool' && filePath) {
+    if (filePath) {
       handleFieldChange('pdf_path', filePath);
       debouncedUpdate({ ...nodeData, pdf_path: filePath });
     }
@@ -309,7 +309,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
               <div className="grid gap-1">
                 <Label className="text-xs font-medium text-muted-foreground">Select Tool</Label>
                 <Select
-                  value={nodeData.tool_name || ""}
+                  value={nodeData.tool_id || ""}
                   onValueChange={(value) => handleChange({ target: { name: "tool_name", value } })}
                 >
                   <SelectTrigger>
@@ -366,5 +366,4 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   )
 }
 
-// Memoize the component to prevent unnecessary re-renders
 export const ToolNode = memo(ToolNodeComponent)

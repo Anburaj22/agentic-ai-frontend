@@ -110,6 +110,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [chatModalOpen, setChatModalOpen] = React.useState(false)
   const [output, setOutput] = React.useState<any>();
   const [reactFlowReady, setReactFlowReady] = React.useState(false);
+  const [disableRunBtn, setDisableRunBtn] = React.useState<boolean>(false);
 
   /** Load workflow data based on workflowId */
   React.useEffect(() => {
@@ -178,6 +179,11 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     event.preventDefault();
     const type = event.dataTransfer.getData("application/reactflow/type");
     const name = event.dataTransfer.getData("application/reactflow/name");
+
+    /** Disable run button when chat output is added to playground */
+    if( type === 'chat-output')
+      setDisableRunBtn(true);
+
     if (!type || !reactFlowWrapper.current) return;
 
     const position = screenToFlowPosition({
@@ -230,6 +236,44 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }
 
   }, [screenToFlowPosition, setNodes, showResultSidebar, setShowResultSidebar]);
+
+  const onNodesChangeHandler = React.useCallback(
+  (changes: any) => {
+    onNodesChange(changes);
+
+    const deletedNodeIds = changes
+      .filter((change: any) => change.type === 'remove')
+      .map((change: any) => change.id);
+
+    if (deletedNodeIds.length > 0) {
+      setWorkflow(prevWorkflow => ({
+        ...prevWorkflow,
+        nodes: prevWorkflow.nodes.filter(node => !deletedNodeIds.includes(node.id)),
+      }));
+
+      setEdges(prevEdges =>
+        prevEdges.filter(edge =>
+          !deletedNodeIds.includes(edge.source) &&
+          !deletedNodeIds.includes(edge.target)
+        )
+      );
+
+      // Re-enable run button if no chat-output nodes remain
+      setNodes(prevNodes => {
+        const updatedNodes = prevNodes.filter(n => !deletedNodeIds.includes(n.id));
+
+        const hasChatOutput = updatedNodes.some(n => n.type === 'chat-output');
+        if (!hasChatOutput) {
+          setDisableRunBtn(false);
+        }
+
+        return updatedNodes;
+      });
+    }
+  },
+  [onNodesChange, setWorkflow, setEdges, setNodes, setDisableRunBtn]
+);
+
 
   /** Handle node data updates */
   const handleNodeDataUpdate = React.useCallback((update: NodeDataUpdate, currentEdges: Edge[]) => {
@@ -586,6 +630,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               saveWorkflow={saveWorkflow}
               runWorkflow={runWorkflow}
               buttonTitle={workflowId === 'new' ? 'Save' : 'Update'}
+              disableRunBtn={disableRunBtn}
             />
           )}
           <div
@@ -597,7 +642,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             <ReactFlow
               nodes={nodes}
               edges={edges}
-              onNodesChange={onNodesChange}
+              onNodesChange={onNodesChangeHandler}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onNodeClick={onNodeClick}

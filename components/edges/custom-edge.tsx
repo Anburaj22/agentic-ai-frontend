@@ -32,8 +32,8 @@ export function CustomEdge({
       markerEnd={markerEnd}
       style={{
         ...style,
-        stroke: selected ? "hsl(var(--crew))" : "hsl(var(--muted-foreground))",
-        strokeWidth: selected ? 3 : 2,
+        stroke: selected ? "#3b82f6" : "hsl(var(--muted-foreground))",
+        strokeWidth: selected ? 2 : 1,
         transition: "stroke 0.2s, stroke-width 0.2s",
       }}
     />
