@@ -36,6 +36,7 @@ import { ChatOutputNode } from "./nodes/chat-output-node"
 import ResultSidebar from "./result-sidebar"
 import { addWorkflow, executeWorkflow, getWorkflowById, updateWorkflow } from "@/services/WorkflowServices";
 import PreLoader from "./PreLoader"
+import ChatModal from "./chat-modal"
 
 // const nodeTypes: NodeTypes = {
 //   agent: AgentNode,
@@ -106,6 +107,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [currentWorkflowDesc, setCurrentWorkflowDesc] = React.useState<string>(workflow.workflow_description);
   const [selectedResultNodeId, setSelectedResultNodeId] = React.useState<string | null>(null)
   const [resultSidebarOpen, setResultSidebarOpen] = React.useState(false)
+  const [chatModalOpen, setChatModalOpen] = React.useState(false)
   const [output, setOutput] = React.useState<any>();
   const [reactFlowReady, setReactFlowReady] = React.useState(false);
 
@@ -117,9 +119,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         .then((resp: any) => {
           const data = resp.data;
           setWorkflow(data);
-
           const generatedNodes = transformWorkflow(data);
           const generatedEdges = generateEdgesFromNodes(data);
+
           setNodes(generatedNodes);
           setEdges(generatedEdges);
 
@@ -184,6 +186,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     });
     const newNodeId = `${type}-${Date.now()}`;
     const isResultNode = type === "result";
+    const isChatOutputNode = type === 'chat-output';
 
     const newNode = {
       id: newNodeId,
@@ -195,6 +198,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
           showResultSidebar,
           setShowResultSidebar,
           result_output: ""
+        }),
+        ...(isChatOutputNode && {
+          chat_output: ""
         }),
       },
       className: `${type}-node`,
@@ -212,6 +218,16 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       });
       document.dispatchEvent(event);
     }
+    if (isChatOutputNode) {
+    const event = new CustomEvent("chat-output-node-updated", {
+      detail: {
+        id: newNodeId,
+        data: { chat_output: "" },
+        position,
+      },
+    });
+    document.dispatchEvent(event);
+  }
 
   }, [screenToFlowPosition, setNodes, showResultSidebar, setShowResultSidebar]);
 
@@ -290,6 +306,28 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     document.addEventListener("result-node-updated", handleResultNodeUpdated as EventListener);
     return () => {
       document.removeEventListener("result-node-updated", handleResultNodeUpdated as EventListener);
+    };
+  }, [edges, handleNodeDataUpdate]);
+
+  /** Listen for chat input node update event */
+  React.useEffect(() => {
+    const handleResultNodeUpdated = (event: CustomEvent<NodeDataUpdate>) => {
+      handleNodeDataUpdate(event.detail, edges);
+    };
+    document.addEventListener("chat-input-node-updated", handleResultNodeUpdated as EventListener);
+    return () => {
+      document.removeEventListener("chat-input-node-updated", handleResultNodeUpdated as EventListener);
+    };
+  }, [edges, handleNodeDataUpdate]);
+
+  /** Listen for chat output node update event */
+  React.useEffect(() => {
+    const handleResultNodeUpdated = (event: CustomEvent<NodeDataUpdate>) => {
+      handleNodeDataUpdate(event.detail, edges);
+    };
+    document.addEventListener("chat-output-node-updated", handleResultNodeUpdated as EventListener);
+    return () => {
+      document.removeEventListener("chat-output-node-updated", handleResultNodeUpdated as EventListener);
     };
   }, [edges, handleNodeDataUpdate]);
 
@@ -381,7 +419,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     };
     for (const item of workflow.nodes) {
       if (item.data?.pdf_path && 'query' in item.data) {
-        newPayload.prompt = item.data.query;
+        newPayload.prompt = item.data.query || prompt;
         newPayload.file_path = item.data.pdf_path;
         break;
       }
@@ -430,10 +468,21 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         type = "result";
       } else if (node.id.startsWith("crew-")) {
         type = "crew";
-      } else if (node.id.startsWith("knowledge-")) {
-        type = "knowledge";
+      } else if (node.id.startsWith("chat-input-")) {
+        type = "chat-input";
+      } else if(node.id.startsWith("chat-output-")) {
+        type = "chat-output";
       } else {
         type = "unknown";
+      }
+
+      let label = "Unnamed";
+      if (type === "chat-input") {
+        label = "Chat Input";
+      } else if (type === "chat-output") {
+        label = "Chat Output";
+      } else {
+        label = node.data.label || node.data.agent_name || node.data.task_name || node.data.tool_name || "Unnamed";
       }
 
       return {
@@ -442,7 +491,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         position: node.position,
         data: {
           ...node.data, // Preserve all custom fields
-          label: node.data.label || node.data.agent_name || node.data.task_name || node.data.tool_name || "Unnamed",
+          label,
           ...(type === "result" && {
             showResultSidebar: true,
             setShowResultSidebar: () => {}, // optionally reuse state setter if needed
@@ -480,6 +529,14 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     setResultSidebarOpen(false)
   }, [])
 
+  const handleOpenChatModal = React.useCallback( () => {
+    setChatModalOpen(true);
+  }, []);
+
+  const handleCloseChatModal = React.useCallback( () => {
+    setChatModalOpen(false);
+  }, []);
+
   /** Memoize nodeTypes to prevent unnecessary re-renders */
   const nodeTypes: NodeTypes = React.useMemo(
     () => ({
@@ -489,8 +546,8 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       crew: CrewNode,
       result: (props: any) => <ResultNode {...props} onOpenSidebar={handleOpenResultSidebar} />,
       tool: ToolNode,
-      "chat-input": ChatInputNode,
-      "chat-output": ChatOutputNode,
+      "chat-input": (props: any) => <ChatInputNode {...props} onOpenModal={handleOpenChatModal} />,
+      "chat-output": (props: any) => <ChatOutputNode {...props} onOpenModal={handleOpenChatModal} />,
     }), []
   )
 
@@ -524,13 +581,10 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             <CrewHeader
               workflowData={workflow}
               setWorkflow={setWorkflow}
-
               setWorkflowName={setWorkflowName}
               setWorkflowDescription={setWorkflowDescription}
-
               saveWorkflow={saveWorkflow}
               runWorkflow={runWorkflow}
-
               buttonTitle={workflowId === 'new' ? 'Save' : 'Update'}
             />
           )}
@@ -570,13 +624,17 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             </ReactFlow>
           </div>
         </div>
-        {/* <ResultSidebar isOpen={showResultSidebar} onClose={setShowResultSidebar}></ResultSidebar> */}
-        {resultSidebarOpen}
         <ResultSidebar
           isOpen={resultSidebarOpen}
           onClose={handleCloseResultSidebar}
           nodeId={selectedResultNodeId}
           output={output}
+        />
+        <ChatModal
+          isOpen={chatModalOpen}
+          onClose={handleCloseChatModal}
+          workflow={workflow}
+          workflowId={workflowId}
         />
       </SidebarProvider>
     </div>

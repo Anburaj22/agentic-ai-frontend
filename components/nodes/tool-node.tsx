@@ -157,7 +157,6 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
       /** Set data in state */
       setFile(e.target.files[0]);
-      console.log(e.target.files[0].name);
       setFileName(e.target.files[0].name);
       fileNameLocal = e.target.files[0].name
 

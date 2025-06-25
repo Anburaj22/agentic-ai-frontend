@@ -90,7 +90,7 @@ export function ResultNode({ id, data, selected, onOpenSidebar }: ResultNodeProp
           <CardContent className="p-4 pt-0">
             <div className="space-y-3">
               <div className="grid gap-1">
-                <Button className="bg-crew hover:bg-crew-dark" onClick={handleOpenSidebar}>
+                <Button className="bg-blue hover:bg-blue-dark w-full" onClick={handleOpenSidebar}>
                   Show Result
                 </Button>
               </div>

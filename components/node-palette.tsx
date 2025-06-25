@@ -59,7 +59,6 @@ export function NodePalette() {
         className="flex items-center gap-3 p-3 rounded-md border border-border bg-card cursor-grab hover:border-crew hover:bg-card/80 transition-colors"
         draggable
         onDragStart={(e) => onDragStart(e, "chat-input", "Chat Input")}
-        style={{display: 'none'}}
       >
         <div className="flex items-center justify-center w-8 h-8 rounded-md bg-cyan-500/10 text-cyan-500">
           <MessageSquare className="h-5 w-5" />
@@ -74,7 +73,6 @@ export function NodePalette() {
         className="flex items-center gap-3 p-3 rounded-md border border-border bg-card cursor-grab hover:border-crew hover:bg-card/80 transition-colors"
         draggable
         onDragStart={(e) => onDragStart(e, "chat-output", "Chat Output")}
-        style={{display: 'none'}}
       >
         <div className="flex items-center justify-center w-8 h-8 rounded-md bg-indigo-500/10 text-indigo-500">
           <MessageCircle className="h-5 w-5" />

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Handle, Position, type NodeProps } from "reactflow"
+import React from "react"
+import { Handle, Position, useReactFlow, type NodeProps } from "reactflow"
 import { MessageSquare, ChevronDown, ChevronUp, Trash2, Copy, Settings } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,9 +10,76 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
-export function ChatInputNode({ data, selected }: NodeProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [inputValue, setInputValue] = useState(data.input || "")
+interface propType extends NodeProps {
+  input: any
+}
+
+export function ChatInputNode({ id, data, selected, input }: propType) {
+
+  const [isOpen, setIsOpen] = React.useState(false)
+  const { setNodes } = useReactFlow();
+
+  const [nodeData, setNodeData] = React.useState({
+    chat_input: data?.chat_input || input,
+  })
+
+  React.useEffect(() => {
+    if (data) {
+      const updatedData = {
+        chat_input: data.chat_input || input,
+      };
+
+      setNodeData(updatedData);
+
+      // Dispatch initial data update to workflow
+      const event = new CustomEvent("chat-input-node-updated", {
+        detail: {
+          id,
+          data: updatedData,
+          position: {
+            x: data?.position?.x || 0,
+            y: data?.position?.y || 0
+          }
+        }
+      });
+
+      document.dispatchEvent(event);
+    }
+  }, []);
+
+
+  const handleChange = (e: any) => {
+    if(e.target) {
+      const {name, value} = e.target;
+
+      const updatedData = { ...nodeData, [name]: value };
+      setNodeData(updatedData);
+
+      setNodes((nodes) =>
+        nodes.map((node) => {
+          if (node.id === id) {
+            // Create a custom event with all the node data
+            const event = new CustomEvent("chat-input-node-updated", {
+              detail: {
+                id,
+                data: updatedData,
+                position: {
+                  x: node.position.x,
+                  y: node.position.y
+                }
+              },
+            })
+
+            // Dispatch the event
+            document.dispatchEvent(event)
+            return {...node, data: { ...node.data, ...updatedData}}
+          }
+          return node
+        }),
+      )
+
+    }
+  }
 
   return (
     <Card className={`w-80 shadow-md chat-input-node node-type-chat-input`}>
@@ -45,10 +112,11 @@ export function ChatInputNode({ data, selected }: NodeProps) {
                 </Label>
                 <Input
                   id="input"
+                  name="chat_input"
                   placeholder="Enter your message..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className="w-full"
+                  value={nodeData.chat_input}
+                  onChange={handleChange}
+                  className="w-full nodrag"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
