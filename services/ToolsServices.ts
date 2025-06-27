@@ -32,3 +32,9 @@ export const getUploadedFileByName = async ( fileName: String) => {
   const response = await axios.post(url, data);
   return response.data;
 }
+
+export const getAllUploadedFile = async () => {
+  const url = `${baseUrl}/data/filenames/`;
+  const response = await axios.get(url);
+  return response.data;
+}

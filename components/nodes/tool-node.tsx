@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Input } from "../ui/input"
 import { Textarea } from "../ui/textarea"
 import { Label } from "../ui/label"
-import { fileUploadForTool, getTools, getUploadedFileByName } from "@/services/ToolsServices";
+import { fileUploadForTool, getAllUploadedFile, getTools, getUploadedFileByName } from "@/services/ToolsServices";
 import { toast } from "react-toastify"
 
 function ToolNodeComponent({ id, data, selected }: NodeProps) {
@@ -27,6 +27,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   const [fileName, setFileName] = useState<String>('No file selected');
   const [filePath, setFilePath] = React.useState<any>('');
   const [isDisable, setIsDisable] = React.useState<boolean>(true);
+  const [allUploadedFiles, setAllUploadedFiles] = React.useState<any>([]);
 
   // Complete node data including dynamic fields
   const [nodeData, setNodeData] = useState<{ [key: string]: any }>({
@@ -70,6 +71,14 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         toast.error(err.message)
       })
   }, [data?.tool_name])
+
+  useEffect(()=> {
+    getAllUploadedFile().then((resp: any)=>{
+      setAllUploadedFiles(resp);
+    }).catch((err: any) => {
+      console.log(err)
+    })
+  }, []);
 
   // Debounced update function
   const debouncedUpdate = useCallback(
@@ -194,7 +203,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
     }
   }, [schema, data]);
 
-  const renderField = useCallback((fieldName: string, config: any) => {
+  const renderField = useCallback((fieldName: string, config: any, index: string) => {
     const fieldValue = nodeData[fieldName] ?? config.default ?? "";
 
     const commonProps = {
@@ -269,6 +278,24 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
             )}
           </>
         )}
+        {(fieldType === 'select') && (
+          <>
+            <Select>
+              <SelectTrigger>
+                  <SelectValue placeholder="Select A file" />
+              </SelectTrigger>
+              <SelectContent>
+                {allUploadedFiles
+                  .filter((value: string) => value.trim() !== "") // <-- remove empty/blank strings
+                  .map((value: string, index: number) => (
+                    <SelectItem key={index} value={value}>
+                      {value}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </div>
     )},
     [id, nodeData, handleFieldChange],
@@ -339,7 +366,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
                   <div className="border-t pt-3">
                     <Label className="text-xs font-medium text-muted-foreground">Parameters</Label>
                   </div>
-                  {Object.entries(schema).map(([fieldName, config]) => renderField(fieldName, config))}
+                  {Object.entries(schema).map(([fieldName, config], index) => renderField(fieldName, config, index))}
                 </div>
               )}
 

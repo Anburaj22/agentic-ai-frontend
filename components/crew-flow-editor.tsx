@@ -119,6 +119,15 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       getWorkflowById(workflowId)
         .then((resp: any) => {
           const data = resp.data;
+
+          /** Start: Disable run button if nodes content chat-output */
+          data.nodes.forEach( (value: any, index: number) => {
+            if( value.id.startsWith('chat-output-') ) {
+              setDisableRunBtn(true);
+            }
+          });
+          /** End: Disable run button if nodes content chat-output */
+
           setWorkflow(data);
           const generatedNodes = transformWorkflow(data);
           const generatedEdges = generateEdgesFromNodes(data);
@@ -272,8 +281,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     }
   },
   [onNodesChange, setWorkflow, setEdges, setNodes, setDisableRunBtn]
-);
-
+  );
 
   /** Handle node data updates */
   const handleNodeDataUpdate = React.useCallback((update: NodeDataUpdate, currentEdges: Edge[]) => {
@@ -460,13 +468,15 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     const newPayload = {
       prompt: '',
       file_path: '',
+      file_name: ''
     };
     for (const item of workflow.nodes) {
-      if (item.data?.pdf_path && 'query' in item.data) {
-        newPayload.prompt = item.data.query || prompt;
-        newPayload.file_path = item.data.pdf_path;
-        break;
-      }
+      newPayload.prompt = item.data.query || '';
+      newPayload.file_path = item.data.pdf_path;
+      newPayload.file_name = '';
+      break;
+      // if (item.data?.pdf_path && 'query' in item.data) {
+      // }
     }
 
     let id;

@@ -6,6 +6,7 @@ import PreLoader from './PreLoader'
 import { toast } from 'react-toastify';
 import { executeWorkflow } from '@/services/WorkflowServices';
 import MDEditor from '@uiw/react-md-editor';
+import { Copy } from 'lucide-react';
 
 interface propsType {
   isOpen: boolean
@@ -100,6 +101,37 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
   }
 
   /**
+   * Copy current response
+   */
+  const copyCurrentResponse = (message: string) => {
+    if (!navigator.clipboard) {
+      toast.success('Copied successfully');
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = message;
+      textArea.style.position = "fixed"; // Avoid scrolling to bottom
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        console.log("Copied to clipboard (fallback):", message);
+      } catch (err) {
+        console.error("Fallback: Copy failed", err);
+      }
+      document.body.removeChild(textArea);
+    } else {
+      navigator.clipboard.writeText(message)
+        .then(() => {
+          toast.success('Copied successfully');
+        })
+        .catch(err => {
+          toast.success('Unsupported browser');
+        });
+    }
+  };
+
+  /**
    * Render chat every time when chat is updated
    */
   const renderChat = (value: any, index: any) => {
@@ -114,8 +146,12 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
           px-4 py-2 rounded-2xl max-w-[70%]`
         }>
           { value.from === 'bot' ?
-            <MDEditor.Markdown source={value.message} style={{ whiteSpace: 'pre-wrap', backgroundColor: '#3b82f6', color: '#fff' }}/> :
-            value.message
+              <div className='bot-wrapper flex flex-col items-end gap-3'>
+                <MDEditor.Markdown source={value.message} style={{ whiteSpace: 'pre-wrap', backgroundColor: '#3b82f6', color: '#fff' }}/>
+                <Copy className='cursor-pointer' size={18}  onClick={() => copyCurrentResponse(value.message)} />
+              </div>
+            :
+              value.message
           }
         </div>
       </React.Fragment>
