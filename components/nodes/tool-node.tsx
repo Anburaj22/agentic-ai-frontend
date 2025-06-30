@@ -54,23 +54,25 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
   // Fetch all tools on mount
   useEffect(() => {
-    getTools()
-      .then((tools) => {
-        setAllTools(tools)
+  getTools()
+    .then((tools) => {
+      setAllTools(tools)
 
-        // If we have a tool_name in data, find and set the selected tool
-        if (data?.tool_name) {
-          const tool = tools.find((t: any) => t.original_id === data.tool_name)
-          if (tool) {
-            setSelectedTool(tool)
-            setSchema(tool.parameters_schema || {})
-          }
+      if (data?.tool_name) {
+        const tool = tools.find(
+          (t: any) => t.original_id === data.tool_name || t.name === data.tool_name
+        )
+        if (tool) {
+          setSelectedTool(tool)
+          setSchema(tool.parameters_schema || {})
         }
-      })
-      .catch( (err) => {
-        toast.error(err.message)
-      })
-  }, [data?.tool_name])
+      }
+    })
+    .catch((err) => {
+      toast.error(err.message)
+    })
+}, [data?.tool_name])
+
 
   useEffect(()=> {
     getAllUploadedFile().then((resp: any)=>{
@@ -201,7 +203,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
       setNodeData(prev => ({ ...prev, ...newData }));
     }
-  }, [schema, data]);
+  }, [schema, data, selected]);
 
   const renderField = useCallback((fieldName: string, config: any, index: string) => {
     const fieldValue = nodeData[fieldName] ?? config.default ?? "";
@@ -298,7 +300,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         )}
       </div>
     )},
-    [id, nodeData, handleFieldChange],
+    [id, nodeData, handleFieldChange, schema],
   )
 
   useEffect(() => {
@@ -366,7 +368,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
                   <div className="border-t pt-3">
                     <Label className="text-xs font-medium text-muted-foreground">Parameters</Label>
                   </div>
-                  {Object.entries(schema).map(([fieldName, config], index) => renderField(fieldName, config, index))}
+                  {Object.entries(schema).map(([fieldName, config], index) => renderField(fieldName, config, `${id}-${fieldName}-${index}`))}
                 </div>
               )}
 
