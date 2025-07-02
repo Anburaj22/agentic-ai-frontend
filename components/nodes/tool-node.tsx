@@ -29,50 +29,52 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   const [isDisable, setIsDisable] = React.useState<boolean>(true);
   const [allUploadedFiles, setAllUploadedFiles] = React.useState<any>([]);
 
-  // Complete node data including dynamic fields
+  /**
+   * set node data state
+   */
   const [nodeData, setNodeData] = useState<{ [key: string]: any }>({
     tool_name: data?.tool_name || "",
     tool_description: data?.tool_description || "",
     tool_class_name: data?.tool_class_name || "",
-    // Dynamic fields will be added here
     ...data,
   })
 
-  // Initialize data from props
+  /**
+   * Initialize data from props
+   */
   useEffect(() => {
     if (data) {
       setNodeData((prevData) => ({
         ...prevData,
         ...data,
       }))
-
       if (data.tool_name) {
         setToolName(data.tool_name)
       }
     }
   }, [data])
 
-  // Fetch all tools on mount
+  /**
+   * Fetch all tools on mount
+   */
   useEffect(() => {
-  getTools()
-    .then((tools) => {
-      setAllTools(tools)
-
-      if (data?.tool_name) {
-        const tool = tools.find(
-          (t: any) => t.original_id === data.tool_name || t.name === data.tool_name
-        )
-        if (tool) {
-          setSelectedTool(tool)
-          setSchema(tool.parameters_schema || {})
+    getTools()
+      .then((tools) => {
+        setAllTools(tools)
+        if (data?.tool_name) {
+          const tool = tools.find(
+            (t: any) => t.original_id === data.tool_name || t.name === data.tool_name
+          )
+          if (tool) {
+            setSelectedTool(tool)
+            setSchema(tool.parameters_schema || {})
+          }
         }
-      }
-    })
-    .catch((err) => {
-      toast.error(err.message)
-    })
-}, [data?.tool_name])
-
+      })
+      .catch((err) => {
+        toast.error(err.message)
+      })
+  }, [data?.tool_name])
 
   useEffect(()=> {
     getAllUploadedFile().then((resp: any)=>{
@@ -153,15 +155,27 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
     [allTools, debouncedUpdate],
   )
 
+  // const handleFieldChange = useCallback(
+  //   (fieldName: string, value: any) => {
+  //     setNodeData((prevData) => ({
+  //       ...prevData,
+  //       [fieldName]: value,
+  //     }))
+  //   },
+  //   []
+  // )
   const handleFieldChange = useCallback(
     (fieldName: string, value: any) => {
-      setNodeData((prevData) => ({
-        ...prevData,
+      const updated = {
+        ...nodeData,
         [fieldName]: value,
-      }))
+      };
+
+      setNodeData(updated);
+      debouncedUpdate(updated);
     },
-    []
-  )
+    [nodeData, debouncedUpdate]
+  );
 
   const doFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     let fileNameLocal = '';
@@ -282,7 +296,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         )}
         {(fieldType === 'select') && (
           <>
-            <Select>
+            <Select onValueChange={(value: any) => handleFieldChange(fieldName, value)} value={nodeData.uploaded_file}>
               <SelectTrigger>
                   <SelectValue placeholder="Select A file" />
               </SelectTrigger>

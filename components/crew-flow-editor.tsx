@@ -82,7 +82,12 @@ interface NodeDataUpdate {
 interface WorkflowType {
   workflow_name: string,
   workflow_description: string,
-  nodes: NodeDataUpdate[]
+  nodes: NodeDataUpdate[],
+  viewport?: {
+    x: number,
+    y: number,
+    zoom: number
+  }
 }
 
 function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
@@ -111,6 +116,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [output, setOutput] = React.useState<any>();
   const [reactFlowReady, setReactFlowReady] = React.useState(false);
   const [disableRunBtn, setDisableRunBtn] = React.useState<boolean>(false);
+  const [disableUploadBtn, setDisableUploadBtn ] = React.useState<boolean>(true);
 
   /** Load workflow data based on workflowId */
   React.useEffect(() => {
@@ -155,6 +161,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   
   /** Only works when we upload the file */
   // React.useEffect(() => {
+  //   console.log(workflow.nodes);
   //   if (workflowId === 'new' && workflow.nodes.length && !initializedRef.current) {
   //     initializedRef.current = true;
 
@@ -165,6 +172,15 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   //     setEdges(generatedEdges);
   //   }
   // }, [workflowId, workflow]);
+
+  /** Set setDisableUploadButton based on id */
+  React.useEffect( () => {
+    if(workflowId === 'new') {
+      setDisableUploadBtn(false);
+    } else {
+      setDisableUploadBtn(true);
+    }
+  }, [workflowId]);
 
   const onConnect = React.useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, type: "custom" }, eds)),
@@ -413,6 +429,12 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     if( workflow.nodes.length > 0 ) {
       setIsLoading(true);
 
+      /** Retain zoom level */
+      const currentViewport = reactFlowInstance?.getViewport?.();
+      if (currentViewport) {
+        workflow.viewport = currentViewport;
+      }      
+
       if(workflowId === 'new') {
         /** Saving new workflow */
         addWorkflow(workflow).then((resp: any) => {
@@ -471,12 +493,11 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       file_name: ''
     };
     for (const item of workflow.nodes) {
-      newPayload.prompt = item.data.query || '';
-      newPayload.file_path = item.data.pdf_path;
-      newPayload.file_name = '';
-      break;
-      // if (item.data?.pdf_path && 'query' in item.data) {
-      // }
+      if(item.id.startsWith("tool-")) {
+        newPayload.prompt = item.data.query || '';
+        newPayload.file_path = item.data.pdf_path || '';
+        newPayload.file_name = item.data.uploaded_file || '';
+      }
     }
 
     let id;
@@ -488,6 +509,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     
     setIsLoading(true);
     if(id) {
+      console.log(newPayload);
       executeWorkflow(id, newPayload).then((resp: any)=> {
         setIsLoading(false);
         if(resp.data.status === 'success') {
@@ -641,6 +663,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               runWorkflow={runWorkflow}
               buttonTitle={workflowId === 'new' ? 'Save' : 'Update'}
               disableRunBtn={disableRunBtn}
+              disableUploadBtn={disableUploadBtn}
             />
           )}
           <div
@@ -671,7 +694,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
                 type: "custom",
                 animated: true,
               }}
-              defaultViewport={{ x: 0, y: 0, zoom: 1 }} // Set default viewport
+              defaultViewport={{ x: 0, y: 0, zoom: 0 }} // Set default viewport
               style={{ backgroundColor: "#F7F9FB" }}
             >
               <Background gap={12} size={1} />

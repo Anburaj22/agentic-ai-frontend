@@ -20,6 +20,7 @@ interface CrewHeaderProps {
   runWorkflow: any
   buttonTitle: string
   disableRunBtn: boolean
+  disableUploadBtn: boolean
 }
 
 export function CrewHeader({
@@ -30,7 +31,8 @@ export function CrewHeader({
   saveWorkflow,
   runWorkflow,
   buttonTitle,
-  disableRunBtn
+  disableRunBtn,
+  disableUploadBtn,
 }: CrewHeaderProps) {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -137,7 +139,7 @@ export function CrewHeader({
 
       <div className="flex-1 flex justify-center">
         <div className="flex items-center gap-2">
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" disabled={true}>
@@ -159,7 +161,7 @@ export function CrewHeader({
             </Tooltip>
           </TooltipProvider>
 
-          <Separator orientation="vertical" className="h-6 mx-2" />
+          <Separator orientation="vertical" className="h-6 mx-2" /> */}
 
           <TooltipProvider>
             <Tooltip>
@@ -176,7 +178,7 @@ export function CrewHeader({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={true}>
+                <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={disableUploadBtn}>
                   <Upload className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>

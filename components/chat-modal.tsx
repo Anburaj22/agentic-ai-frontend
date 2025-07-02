@@ -79,12 +79,13 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
     const newPayload = {
       prompt: '',
       file_path: '',
+      file_name: '',
     };
     for (const item of workflow.nodes) {
-      if (item.data?.pdf_path) {
+      if(item.id.startsWith("tool-")) {
         newPayload.prompt = currentMessage;
         newPayload.file_path = item.data.pdf_path;
-        break;
+        newPayload.file_name = '';
       }
     }
     executeWorkflow(workflowId, newPayload).then((resp: any) => {

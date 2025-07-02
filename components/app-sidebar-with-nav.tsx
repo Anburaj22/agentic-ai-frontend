@@ -8,7 +8,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -16,7 +15,7 @@ import {
   SidebarRail,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { FlowerIcon as FlowIcon } from "lucide-react";
+import { Workflow } from "lucide-react";
 
 import { Logo } from "./logo";
 import AppSidebarFooter from "./app-sidebar-footer";
@@ -37,7 +36,7 @@ export function AppSidebarWithNav() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          {/* <SidebarGroupLabel>Navigation</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -47,7 +46,7 @@ export function AppSidebarWithNav() {
                   isActive={isActive("/workflows")}
                 >
                   <Link href="/workflows">
-                    <FlowIcon className="h-5 w-5" />
+                    <Workflow className="h-5 w-5" />
                     <span>Workflows</span>
                   </Link>
                 </SidebarMenuButton>

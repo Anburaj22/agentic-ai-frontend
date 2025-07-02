@@ -32,7 +32,7 @@ export default function PopoverMenu() {
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+        className="p-2 rounded-full transition"
       >
         <Settings className="cursor-pointer spin-on-hover" />
       </button>

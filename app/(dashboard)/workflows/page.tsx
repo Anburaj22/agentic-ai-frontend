@@ -4,7 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { FlowerIcon as FlowIcon, Search, Calendar, Users, Trash2, ChartNetwork } from "lucide-react"
+import { Search, Users, Trash2, Workflow, Wrench } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from 'react-toastify';
 
@@ -23,13 +23,23 @@ export default function WorkflowsPage() {
     getAllWorkflow();
   }, []);
 
+  const generateRandomColor = () => {
+    const colorArr = [
+      'orange', 'amber', 'green', 'cyan', 'blue', 'indigo', 'purple'
+    ];
+    const randomIndex = Math.floor(Math.random() * colorArr.length);
+    const color = colorArr[randomIndex];
+    return `bg-${color}-500/10 text-${color}-500`;
+  }
+
   const getAllWorkflow = () => {
     setIsLoading(true);
     getWorkflow().then((resp: any) => {
       const updatedData = resp.data.map((item: any) => ({
         ...item,
-        icon: ChartNetwork,
-        color: 'bg-blue-500/10 text-blue-500',
+        icon: Workflow,
+        // color: 'bg-blue-500/10 text-blue-500',
+        color: generateRandomColor(),
         lastEdited: formatDate(item.updated_at),
         agents: getTypeCount(item, 'agent'),
         tasks: getTypeCount(item, 'task'),
@@ -93,14 +103,6 @@ export default function WorkflowsPage() {
     }
   }
 
-  const truncateByWords = (str: string, maxLength: number, addEllipsis = true) => {
-    if (typeof str !== 'string') return '';
-    if (str.length <= maxLength) return str;
-    return addEllipsis
-      ? str.slice(0, maxLength) + '...'
-      : str.slice(0, maxLength);
-  }
-
   return (
     <RequireAuth>
       {isLoading ? (<PreLoader />) : (<></>)}
@@ -125,26 +127,31 @@ export default function WorkflowsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorkflows.map((workflow:any, index: any) => (
             <Card className="h-full hover:border-blue hover:shadow-md transition-all" key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-md ${workflow.color}`}>
-                    <workflow.icon className="h-6 w-6" />
+              <CardContent className="p-4">
+                <div className="mb-4 flex justify-between">
+                  <div className="left flex items-center gap-2">
+                    <div className={`flex items-center justify-center h-8 w-8 rounded-md ${workflow.color}`}>
+                      <workflow.icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-normal text-[15px] max-w-[245px]">
+                      <Link
+                        className="cursor-pointer truncate block whitespace-nowrap overflow-hidden text-ellipsis"
+                        href={`/workflows/${workflow.id}`}
+                        key={workflow.id}
+                        title={workflow.workflow_name}
+                      >
+                        {workflow.workflow_name}
+                      </Link>
+                    </h3>
                   </div>
-                  <div className="flex items-center text-xs text-muted-foreground">
+                  <div className="right">
+                    {/* {showStatus(workflow.status)} */}
+                  </div>
+                  {/* <div className="flex items-center text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3 mr-1" />
                     {workflow.lastEdited}
-                  </div>
+                  </div> */}
                 </div>
-                <h3 className="text-xl font-normal mb-2">
-                  <Link
-                    className="cursor-pointer"
-                    href={`/workflows/${workflow.id}`}
-                    key={workflow.id}
-                    title={workflow.workflow_name}
-                  >
-                    {truncateByWords(workflow.workflow_name, 25)}
-                  </Link>
-                </h3>
                 <p
                   className="text-xs text-muted-foreground mb-4 description"
                   style={{
@@ -156,13 +163,12 @@ export default function WorkflowsPage() {
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {showStatus(workflow.status)}
-                    <Badge variant="outline" className="flex items-center gap-1">
+                    <Badge variant="outline" className="flex items-center gap-1 font-thin">
                       <Users className="h-3 w-3" />
                       <span>{workflow.agents} Agents</span>
                     </Badge>
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <FlowIcon className="h-3 w-3" />
+                    <Badge variant="outline" className="flex items-center gap-1 font-thin">
+                      <Wrench className="h-3 w-3" />
                       <span>{workflow.tasks} Tasks</span>
                     </Badge>
                   </div>
