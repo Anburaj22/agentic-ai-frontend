@@ -1,8 +1,6 @@
 "use client"
 
 import React from "react"
-
-// import { useState, useCallback, useRef, useEffect } from "react"
 import ReactFlow, {
   Background,
   Controls,
@@ -16,14 +14,11 @@ import ReactFlow, {
   ReactFlowProvider,
   useReactFlow,
 } from "reactflow"
-import "reactflow/dist/style.css"
 import { AppSidebar } from "./app-sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { CrewHeader } from "./crew-header"
 import { AgentNode } from "./nodes/agent-node"
 import { TaskNode } from "./nodes/task-node"
-import { KnowledgeNode } from "./nodes/knowledge-node"
-import { CrewNode } from "./nodes/crew-node"
 import { ResultNode } from "./nodes/result-node"
 import { ToolNode } from "./nodes/tool-node"
 import { CustomEdge } from "./edges/custom-edge"
@@ -38,14 +33,7 @@ import { addWorkflow, executeWorkflow, getWorkflowById, updateWorkflow } from "@
 import PreLoader from "./PreLoader"
 import ChatModal from "./chat-modal"
 
-// const nodeTypes: NodeTypes = {
-//   agent: AgentNode,
-//   task: TaskNode,
-//   knowledge: KnowledgeNode,
-//   crew: CrewNode,
-//   result: ResultNode,
-//   tool: ToolNode,
-// }
+import "reactflow/dist/style.css"
 
 const edgeTypes: EdgeTypes = {
   custom: CustomEdge,
@@ -96,7 +84,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const initializedRef = React.useRef(false);
 
   const { project, screenToFlowPosition } = useReactFlow()
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [nodes, setNodes, onNodesChange] = useNodesState<>(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [selectedNode, setSelectedNode] = React.useState<string | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = React.useState<any>(null)
@@ -487,16 +475,20 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }
 
   const runWorkflow = () => {
-    const newPayload = {
-      prompt: '',
-      file_path: '',
-      file_name: ''
+
+    const newPayload = {} as {
+      [key: string]: any;
     };
     for (const item of workflow.nodes) {
       if(item.id.startsWith("tool-")) {
-        newPayload.prompt = item.data.query || '';
-        newPayload.file_path = item.data.pdf_path || '';
-        newPayload.file_name = item.data.uploaded_file || '';
+        if(item.data.tool_name === 'RagTool') {
+          newPayload.file_name = item.data.uploaded_file || '';
+          newPayload.prompt = item.data.query || '';
+        }
+        if(item.data.tool_name === 'PdfSearchTool') {
+          newPayload.file_path = item.data.pdf_path || '';
+          newPayload.prompt = item.data.query || '';
+        }
       }
     }
 
@@ -509,7 +501,6 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     
     setIsLoading(true);
     if(id) {
-      console.log(newPayload);
       executeWorkflow(id, newPayload).then((resp: any)=> {
         setIsLoading(false);
         if(resp.data.status === 'success') {
@@ -618,8 +609,8 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     () => ({
       agent: AgentNode,
       task: TaskNode,
-      knowledge: KnowledgeNode,
-      crew: CrewNode,
+      // knowledge: KnowledgeNode,
+      // crew: CrewNode,
       result: (props: any) => <ResultNode {...props} onOpenSidebar={handleOpenResultSidebar} />,
       tool: ToolNode,
       "chat-input": (props: any) => <ChatInputNode {...props} onOpenModal={handleOpenChatModal} />,
@@ -694,8 +685,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
                 type: "custom",
                 animated: true,
               }}
-              defaultViewport={{ x: 0, y: 0, zoom: 0 }} // Set default viewport
+              defaultViewport={{ x: 0, y: 0, zoom: 1 }} // Set default viewport
               style={{ backgroundColor: "#F7F9FB" }}
+              // fitView
             >
               <Background gap={12} size={1} />
               <Controls />

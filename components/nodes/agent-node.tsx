@@ -247,11 +247,11 @@ export function AgentNode({ id, data, selected }: NodeProps) {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              {/* <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" size="icon">
                   <Copy />
                 </Button>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </CollapsibleContent>

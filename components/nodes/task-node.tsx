@@ -122,11 +122,11 @@ export function TaskNode({ id, data, selected }: NodeProps) {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              {/* <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" size="icon">
                   <Copy className="h-4 w-4" />
                 </Button>
-              </div>
+              </div> */}
 
             </div>
           </CardContent>

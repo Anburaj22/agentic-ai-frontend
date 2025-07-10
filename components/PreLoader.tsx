@@ -2,7 +2,19 @@
 
 import React from "react";
 
-const PreLoader = () => {
+interface propType {
+  color?: string
+}
+
+const PreLoader = ({color = 'blue'}: propType) => {
+
+  const colorMap:any = {
+    rose: 'text-rose-500',
+    lime: 'text-lime-500',
+    blue: 'text-blue-500',
+  };
+  const cssColorClass = `animate-spin h-10 w-10 ${colorMap[color]} mx-auto mb-4`;
+
   return (
     <div
       className="preloader-wrapper flex justify-center items-center text-center absolute top-0 left-0 cursor-no-drop"
@@ -14,7 +26,12 @@ const PreLoader = () => {
         height: '100%',
       }}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" className="animate-spin h-10 w-10 text-blue-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={cssColorClass}
+        fill="none"
+        viewBox="0 0 24 24"
+      >
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"strokeWidth="4"></circle>
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
       </svg>

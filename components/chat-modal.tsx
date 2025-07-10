@@ -176,7 +176,7 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
   return(
     <>
       <div id="fullPageModal" className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" style={{zIndex: '999'}}>
-        { isLoading ? (<PreLoader />) : <></>}
+        { isLoading ? (<PreLoader color='rose' />) : <></>}
         <div className="bg-white w-[90vw] h-[90vh] rounded-xl shadow-xl relative p-8 flex flex-col">
           
           {/* close button */}

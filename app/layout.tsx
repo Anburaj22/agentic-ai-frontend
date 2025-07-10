@@ -5,7 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import favicon from '../public/assets/favicon.png';
 import { AuthProvider } from '@/components/AuthProvider'
-import { ToastContainer } from 'react-toastify';
+import { Slide, ToastContainer } from 'react-toastify';
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -37,8 +37,11 @@ export default function RootLayout({
               newestOnTop={false}
               closeOnClick={false}
               rtl={false}
+              pauseOnFocusLoss={false}
               draggable
+              pauseOnHover={false}
               theme="light"
+              transition={Slide}
             />
           </AuthProvider>
         </ThemeProvider>
