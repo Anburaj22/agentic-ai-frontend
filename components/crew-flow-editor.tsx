@@ -84,7 +84,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const initializedRef = React.useRef(false);
 
   const { project, screenToFlowPosition } = useReactFlow()
-  const [nodes, setNodes, onNodesChange] = useNodesState<>(initialNodes)
+  const [nodes, setNodes, onNodesChange] = useNodesState<any>(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [selectedNode, setSelectedNode] = React.useState<string | null>(null)
   const [reactFlowInstance, setReactFlowInstance] = React.useState<any>(null)
@@ -475,10 +475,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }
 
   const runWorkflow = () => {
-
-    const newPayload = {} as {
-      [key: string]: any;
-    };
+    const newPayload = {} as {[key: string]: any};
     for (const item of workflow.nodes) {
       if(item.id.startsWith("tool-")) {
         if(item.data.tool_name === 'RagTool') {
