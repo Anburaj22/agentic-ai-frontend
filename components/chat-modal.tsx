@@ -78,14 +78,15 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
     setIsLoading(true);
     const newPayload = {} as {[key: string]: any};
     for (const item of workflow.nodes) {
+      console.log(item);
       if(item.id.startsWith("tool-")) {
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
-          newPayload.prompt = item.data.query || '';
+          newPayload.prompt = currentMessage || '';
         }
         if(item.data.tool_name === 'PdfSearchTool') {
           newPayload.file_path = item.data.pdf_path || '';
-          newPayload.prompt = item.data.query || '';
+          newPayload.prompt = currentMessage || '';
         }
       }
     }
