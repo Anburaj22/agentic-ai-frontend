@@ -18,15 +18,15 @@ export default function WorkflowsPage() {
   const [allWorkflows, setAllWorkflows] = React.useState<any>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [isAdmin, setIsAdmin] = React.useState<string | null>('');
 
   React.useEffect( () => {
     getAllWorkflow();
+    setIsAdmin(localStorage.getItem('is_agentic_admin'));
   }, []);
 
   const generateRandomColor = () => {
-    const colorArr = [
-      'orange', 'amber', 'green', 'cyan', 'blue', 'indigo', 'purple'
-    ];
+    const colorArr = ['orange', 'amber', 'green', 'cyan', 'blue', 'indigo', 'purple'];
     const randomIndex = Math.floor(Math.random() * colorArr.length);
     const color = colorArr[randomIndex];
     return `bg-${color}-500/10 text-${color}-500`;
@@ -172,7 +172,7 @@ export default function WorkflowsPage() {
                       <span>{workflow.tasks} Tasks</span>
                     </Badge>
                   </div>
-                  <Trash2 className="cursor-pointer" size={16} onClick={ () => handleDelete(workflow.id)} />
+                  {isAdmin === 'true' && (<Trash2 className="cursor-pointer" size={16} onClick={ () => handleDelete(workflow.id)} />)}
                 </div>
               </CardContent>
             </Card>

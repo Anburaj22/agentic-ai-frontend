@@ -1,17 +1,20 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useRouter , useSearchParams } from 'next/navigation'
+import {jwtDecode} from 'jwt-decode';
 
-let hasExchanged = false // ✅ prevent duplicate calls
+let hasExchanged = false
 
 export default function Idpresponse() {
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  useEffect(() => {
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+  const [accesToken, setAccessToken] = React.useState<string>('');
+
+  React.useEffect(() => {
     if (hasExchanged) return
     hasExchanged = true
     
@@ -24,11 +27,6 @@ export default function Idpresponse() {
     }
 
     const exchangeToken = async () => {
-      // const clientId = '5g5rdsptri79c98pvuopsv5dta'
-      // const clientSecret = '1a7u8tlbqhgo625ihqofm512mfm7vuprjkrkh8oi0q3cpft6h4mn'
-      // const redirectUri = 'https://dev3.agentic-ai.apexon-genesys.com/idpresponse'
-      // const domain = 'https://genesys-user-pool.auth.us-east-1.amazoncognito.com'
-
       const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
       const clientSecret = process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET!
       const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!
@@ -68,6 +66,36 @@ export default function Idpresponse() {
           localStorage.setItem('access_token', data.access_token)
           localStorage.setItem('id_token', data.id_token)
           localStorage.setItem('refresh_token', data.refresh_token)
+
+          /** set access token in state as well for further user */
+          setAccessToken(data.access);
+
+          /** Here we need to fetch user Info after login */
+          const userInfoUrl = `${process.env.NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/userInfo`;
+          const headers = {"Authorization": `Bearer ${data.access_token}`}
+          fetch(userInfoUrl, {
+            method: 'post',
+            headers: headers
+          }).then(
+            resp => resp.json()
+          ).then(
+            data2 => {
+              console.log(data2);
+              localStorage.setItem('user_email', data2.email);
+
+              const fullName = `${data2.given_name} ${data2.family_name}`
+              localStorage.setItem('user_full_name', fullName);
+
+              const decodedToken: any = jwtDecode(data.access_token);
+              if(Object.keys(decodedToken).length) {
+                const groups = decodedToken['cognito:groups'];
+                console.log(groups);
+                if(Array.isArray(groups) && groups.includes('AgenticAI_Admin') ) {
+                  localStorage.setItem('is_agentic_admin', 'true');
+                }
+              }
+            }
+          );
 
           // Redirect to your app's main page
           // setTimeout(() => {

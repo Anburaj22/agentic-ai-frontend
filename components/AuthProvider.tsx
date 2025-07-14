@@ -120,6 +120,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('id_token')
+    localStorage.removeItem('user_email')
+    localStorage.removeItem('user_full_name')
+    localStorage.removeItem('is_agentic_admin')
     setAccessToken(null)
     setIsAuthenticated(false)
     router.push("/") // redirect to login
