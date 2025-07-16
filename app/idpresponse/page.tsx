@@ -80,7 +80,6 @@ export default function Idpresponse() {
             resp => resp.json()
           ).then(
             data2 => {
-              console.log(data2);
               localStorage.setItem('user_email', data2.email);
 
               const fullName = `${data2.given_name} ${data2.family_name}`
@@ -89,7 +88,6 @@ export default function Idpresponse() {
               const decodedToken: any = jwtDecode(data.access_token);
               if(Object.keys(decodedToken).length) {
                 const groups = decodedToken['cognito:groups'];
-                console.log(groups);
                 if(Array.isArray(groups) && groups.includes('AgenticAI_Admin') ) {
                   localStorage.setItem('is_agentic_admin', 'true');
                 }

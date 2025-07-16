@@ -478,6 +478,11 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     const newPayload = {} as {[key: string]: any};
     for (const item of workflow.nodes) {
       if(item.id.startsWith("tool-")) {
+        if(item.data.tool_name === 'CsvSearchTool') {
+          console.log(item.data);
+          newPayload.csv_path = '';
+          newPayload.query = '';
+        }
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
           newPayload.prompt = item.data.query || '';
@@ -602,16 +607,25 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, []);
 
   /** Memoize nodeTypes to prevent unnecessary re-renders */
+  const ResultNodeWrapper = (props: any) => (
+    <ResultNode {...props} onOpenSidebar={handleOpenResultSidebar} />
+  );
+
+  const ChatInputNodeWrapper = (props: any) => (
+    <ChatInputNode {...props} onOpenModal={handleOpenChatModal} />
+  );
+
+  const ChatOutputNodeWrapper = (props: any) => (
+    <ChatOutputNode {...props} onOpenModal={handleOpenChatModal} />
+  );
   const nodeTypes: NodeTypes = React.useMemo(
     () => ({
       agent: AgentNode,
       task: TaskNode,
-      // knowledge: KnowledgeNode,
-      // crew: CrewNode,
-      result: (props: any) => <ResultNode {...props} onOpenSidebar={handleOpenResultSidebar} />,
+      result: ResultNodeWrapper,
       tool: ToolNode,
-      "chat-input": (props: any) => <ChatInputNode {...props} onOpenModal={handleOpenChatModal} />,
-      "chat-output": (props: any) => <ChatOutputNode {...props} onOpenModal={handleOpenChatModal} />,
+      "chat-input": ChatInputNodeWrapper,
+      "chat-output": ChatOutputNodeWrapper,
     }), []
   )
 
@@ -682,12 +696,10 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
                 type: "custom",
                 animated: true,
               }}
-              defaultViewport={{ x: 0, y: 0, zoom: 1 }} // Set default viewport
+              defaultViewport={{ x: 0, y: 0, zoom: 1 }}
               style={{ backgroundColor: "#F7F9FB" }}
-              // fitView
             >
               <Background gap={12} size={1} />
-              <Controls />
             </ReactFlow>
           </div>
         </div>
@@ -700,8 +712,8 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         <ChatModal
           isOpen={chatModalOpen}
           onClose={handleCloseChatModal}
-          workflow={workflow}
           workflowId={workflowId}
+          workflow={workflow.nodes}
         />
       </SidebarProvider>
     </div>

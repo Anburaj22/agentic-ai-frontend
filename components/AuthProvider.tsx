@@ -79,6 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = async () => {
+    localStorage.setItem('theme', 'light');
     const refreshToken = localStorage.getItem("refresh_token")
 
     // const clientId = '5g5rdsptri79c98pvuopsv5dta'

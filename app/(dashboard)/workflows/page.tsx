@@ -26,7 +26,7 @@ export default function WorkflowsPage() {
   }, []);
 
   const generateRandomColor = () => {
-    const colorArr = ['orange', 'amber', 'green', 'cyan', 'blue', 'indigo', 'purple'];
+    const colorArr = ['orange', 'amber', 'green', 'cyan', 'blue', 'indigo'];
     const randomIndex = Math.floor(Math.random() * colorArr.length);
     const color = colorArr[randomIndex];
     return `bg-${color}-500/10 text-${color}-500`;
@@ -128,29 +128,18 @@ export default function WorkflowsPage() {
           {filteredWorkflows.map((workflow:any, index: any) => (
             <Card className="h-full hover:border-blue hover:shadow-md transition-all" key={index}>
               <CardContent className="p-4">
-                <div className="mb-4 flex justify-between">
-                  <div className="left flex items-center gap-2">
-                    <div className={`flex items-center justify-center h-8 w-8 rounded-md ${workflow.color}`}>
-                      <workflow.icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="font-normal text-[15px] max-w-[245px]">
-                      <Link
-                        className="cursor-pointer truncate block whitespace-nowrap overflow-hidden text-ellipsis"
-                        href={`/workflows/${workflow.id}`}
-                        key={workflow.id}
-                        title={workflow.workflow_name}
-                      >
-                        {workflow.workflow_name}
-                      </Link>
-                    </h3>
+                <div className="title mb-4 flex gap-2 items-center">
+                  <div className={`rounded-md ${workflow.color}`} style={{padding: '6px'}}>
+                    <workflow.icon className="h-5 w-5" />
                   </div>
-                  <div className="right">
-                    {/* {showStatus(workflow.status)} */}
-                  </div>
-                  {/* <div className="flex items-center text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {workflow.lastEdited}
-                  </div> */}
+                  <Link
+                    className="cursor-pointer font-normal text-[15px]"
+                    href={`/workflows/${workflow.id}`}
+                    key={workflow.id}
+                    title={workflow.workflow_name}
+                  >
+                    {workflow.workflow_name}
+                  </Link>
                 </div>
                 <p
                   className="text-xs text-muted-foreground mb-4 description"

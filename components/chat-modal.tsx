@@ -11,8 +11,8 @@ import { Copy } from 'lucide-react';
 interface propsType {
   isOpen: boolean
   onClose: any
-  workflow: any
   workflowId: any
+  workflow: any
 }
 
 interface chatProp {
@@ -20,7 +20,7 @@ interface chatProp {
   from: string
 }
 
-const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
+const ChatModal = ({isOpen, onClose, workflowId, workflow}: propsType) => {
 
   if (!isOpen) return null
 
@@ -34,10 +34,10 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
    * On init: take the value from chat-input and set it into local state
    */
   React.useEffect( () => {
-    const nodes = workflow.nodes;
+    const nodes = workflow;
     nodes.forEach( (node: any) => {
       if(node.id.startsWith("chat-input-")) {
-        setCurrentMessage(node.data.chat_input);
+        setCurrentMessage(node.data.chat_input || '');
       }
     })
   }, []);
@@ -77,8 +77,8 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
   const runWorkflow = (workflowId: string, currentMessage: string) => {
     setIsLoading(true);
     const newPayload = {} as {[key: string]: any};
-    for (const item of workflow.nodes) {
-      console.log(item);
+    // for (const item of workflow.nodes) {
+    for (const item of workflow) {
       if(item.id.startsWith("tool-")) {
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
@@ -208,7 +208,7 @@ const ChatModal = ({isOpen, onClose, workflow, workflowId}: propsType) => {
             />
             <Button
               className="bg-blue hover:bg-blue-dark px-4 py-2 rounded-md text-white"
-              disabled={currentMessage.length ? false : true}
+              disabled={currentMessage && currentMessage.length ? false : true}
               onClick={sendMessage}
             >
               Send

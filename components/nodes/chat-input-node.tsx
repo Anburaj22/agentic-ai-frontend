@@ -20,13 +20,13 @@ export function ChatInputNode({ id, data, selected, input }: propType) {
   const { setNodes } = useReactFlow();
 
   const [nodeData, setNodeData] = React.useState({
-    chat_input: data?.chat_input || input,
+    chat_input: data?.chat_input ?? input ?? ''
   })
 
   React.useEffect(() => {
     if (data) {
       const updatedData = {
-        chat_input: data.chat_input || input,
+        chat_input: data?.chat_input ?? input ?? ''
       };
 
       setNodeData(updatedData);
