@@ -3,7 +3,6 @@
 import React from "react"
 import ReactFlow, {
   Background,
-  Controls,
   useNodesState,
   useEdgesState,
   addEdge,
@@ -14,8 +13,11 @@ import ReactFlow, {
   ReactFlowProvider,
   useReactFlow,
 } from "reactflow"
-import { AppSidebar } from "./app-sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
+
+import { AppSidebar } from "./app-sidebar"
 import { CrewHeader } from "./crew-header"
 import { AgentNode } from "./nodes/agent-node"
 import { TaskNode } from "./nodes/task-node"
@@ -23,13 +25,10 @@ import { ResultNode } from "./nodes/result-node"
 import { ToolNode } from "./nodes/tool-node"
 import { CustomEdge } from "./edges/custom-edge"
 import { initialNodes, initialEdges } from "@/lib/initial-flow"
-import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
 import { ChatInputNode } from "./nodes/chat-input-node"
 import { ChatOutputNode } from "./nodes/chat-output-node"
-
-import ResultSidebar from "./result-sidebar"
 import { addWorkflow, executeWorkflow, getWorkflowById, updateWorkflow } from "@/services/WorkflowServices";
+import ResultSidebar from "./result-sidebar"
 import PreLoader from "./PreLoader"
 import ChatModal from "./chat-modal"
 
@@ -121,8 +120,11 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
             }
           });
           /** End: Disable run button if nodes content chat-output */
+          
+          setWorkflow(data);  
 
-          setWorkflow(data);
+          localStorage.setItem('payload', JSON.stringify(extractPayloadFromWorkflow(data.nodes)));
+
           const generatedNodes = transformWorkflow(data);
           const generatedEdges = generateEdgesFromNodes(data);
 
@@ -251,40 +253,40 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [screenToFlowPosition, setNodes, showResultSidebar, setShowResultSidebar]);
 
   const onNodesChangeHandler = React.useCallback(
-  (changes: any) => {
-    onNodesChange(changes);
+    (changes: any) => {
+      onNodesChange(changes);
 
-    const deletedNodeIds = changes
-      .filter((change: any) => change.type === 'remove')
-      .map((change: any) => change.id);
+      const deletedNodeIds = changes
+        .filter((change: any) => change.type === 'remove')
+        .map((change: any) => change.id);
 
-    if (deletedNodeIds.length > 0) {
-      setWorkflow(prevWorkflow => ({
-        ...prevWorkflow,
-        nodes: prevWorkflow.nodes.filter(node => !deletedNodeIds.includes(node.id)),
-      }));
+      if (deletedNodeIds.length > 0) {
+        setWorkflow(prevWorkflow => ({
+          ...prevWorkflow,
+          nodes: prevWorkflow.nodes.filter(node => !deletedNodeIds.includes(node.id)),
+        }));
 
-      setEdges(prevEdges =>
-        prevEdges.filter(edge =>
-          !deletedNodeIds.includes(edge.source) &&
-          !deletedNodeIds.includes(edge.target)
-        )
-      );
+        setEdges(prevEdges =>
+          prevEdges.filter(edge =>
+            !deletedNodeIds.includes(edge.source) &&
+            !deletedNodeIds.includes(edge.target)
+          )
+        );
 
-      // Re-enable run button if no chat-output nodes remain
-      setNodes(prevNodes => {
-        const updatedNodes = prevNodes.filter(n => !deletedNodeIds.includes(n.id));
+        // Re-enable run button if no chat-output nodes remain
+        setNodes(prevNodes => {
+          const updatedNodes = prevNodes.filter(n => !deletedNodeIds.includes(n.id));
 
-        const hasChatOutput = updatedNodes.some(n => n.type === 'chat-output');
-        if (!hasChatOutput) {
-          setDisableRunBtn(false);
-        }
+          const hasChatOutput = updatedNodes.some(n => n.type === 'chat-output');
+          if (!hasChatOutput) {
+            setDisableRunBtn(false);
+          }
 
-        return updatedNodes;
-      });
-    }
-  },
-  [onNodesChange, setWorkflow, setEdges, setNodes, setDisableRunBtn]
+          return updatedNodes;
+        });
+      }
+    },
+    [onNodesChange, setWorkflow, setEdges, setNodes, setDisableRunBtn]
   );
 
   /** Handle node data updates */
@@ -474,14 +476,13 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     setWorkflow( upWf );
   }
 
-  const runWorkflow = () => {
-    const newPayload = {} as {[key: string]: any};
-    for (const item of workflow.nodes) {
+  const extractPayloadFromWorkflow = (nodes: any) => {
+    const newPayload = {} as {[key: string]: any}
+    for (const item of nodes) {
       if(item.id.startsWith("tool-")) {
         if(item.data.tool_name === 'CsvSearchTool') {
-          console.log(item.data);
-          newPayload.csv_path = '';
-          newPayload.query = '';
+          newPayload.file_path = '';
+          newPayload.prompt = '';
         }
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
@@ -493,6 +494,11 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         }
       }
     }
+    return newPayload;
+  }
+
+  const runWorkflow = () => {
+    const newPayload = extractPayloadFromWorkflow(workflow.nodes);
 
     let id;
     if(workflowId !== 'new') {

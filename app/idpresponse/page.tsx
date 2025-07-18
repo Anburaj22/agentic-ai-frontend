@@ -2,7 +2,8 @@
 
 import React from 'react'
 import { useRouter , useSearchParams } from 'next/navigation'
-import {jwtDecode} from 'jwt-decode';
+
+import { exchangeCognitoToken } from './../../services/AuthServices'; // Adjust path as needed
 
 let hasExchanged = false
 
@@ -27,91 +28,35 @@ export default function Idpresponse() {
     }
 
     const exchangeToken = async () => {
-      const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
-      const clientSecret = process.env.NEXT_PUBLIC_COGNITO_CLIENT_SECRET!
-      const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!
-      const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!
-
-      const basicAuth = btoa(`${clientId}:${clientSecret}`)
-
-      const body = new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri,
-        client_id: clientId
-      })
-
-      if (!clientId || !clientSecret || !redirectUri || !domain) {
-        console.log("Missing environment variables for Cognito configuration")
-        setError('Configuration error. Please check your environment variables.')
-        setLoading(false)
-        return
-      }
-
       try {
-        const response = await fetch(`${domain}/oauth2/token`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": `Basic ${basicAuth}`,
-          },
-          body
-        })
+        const result = await exchangeCognitoToken(code);
 
-        const data = await response.json()
+        if (!result) throw new Error("No result from token exchange");
 
-        if (response.ok && data.access_token) {
+        const { user, tokens } = result;
 
-          // Store tokens securely (e.g., in localStorage or cookies)
-          localStorage.setItem('access_token', data.access_token)
-          localStorage.setItem('id_token', data.id_token)
-          localStorage.setItem('refresh_token', data.refresh_token)
+        // Store tokens
+        localStorage.setItem('access_token', tokens.access_token);
+        localStorage.setItem('id_token', tokens.id_token);
+        localStorage.setItem('refresh_token', tokens.refresh_token);
 
-          /** set access token in state as well for further user */
-          setAccessToken(data.access);
+        // Store user info
+        localStorage.setItem('user_email', user.email);
+        localStorage.setItem('user_full_name', `${user.given_name} ${user.family_name}`);
 
-          /** Here we need to fetch user Info after login */
-          const userInfoUrl = `${process.env.NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/userInfo`;
-          const headers = {"Authorization": `Bearer ${data.access_token}`}
-          fetch(userInfoUrl, {
-            method: 'post',
-            headers: headers
-          }).then(
-            resp => resp.json()
-          ).then(
-            data2 => {
-              localStorage.setItem('user_email', data2.email);
-
-              const fullName = `${data2.given_name} ${data2.family_name}`
-              localStorage.setItem('user_full_name', fullName);
-
-              const decodedToken: any = jwtDecode(data.access_token);
-              if(Object.keys(decodedToken).length) {
-                const groups = decodedToken['cognito:groups'];
-                if(Array.isArray(groups) && groups.includes('AgenticAI_Admin') ) {
-                  localStorage.setItem('is_agentic_admin', 'true');
-                }
-              }
-            }
-          );
-
-          // Redirect to your app's main page
-          // setTimeout(() => {
-          //   router.push('/workflows')
-          // }, 100) // 100–300ms may help
-
-          router.push('/workflows')
-        } else {
-          setError(data.error_description || 'Failed to retrieve tokens.')
-          // router.push('/')
+        if (Array.isArray(user.groups) && user.groups.includes('AgenticAI_Admin')) {
+          localStorage.setItem('is_agentic_admin', 'true');
         }
-      } catch (err) {
-        console.log(err)
-        setError('An unexpected error occurred while fetching tokens.')
-        // router.push('/')
-      }
 
-      setLoading(false)
+        setAccessToken(tokens.access_token);
+        router.push('/workflows');
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || 'Unexpected error occurred during token exchange.');
+        // router.push('/');
+      } finally {
+        setLoading(false);
+      }
     }
 
     exchangeToken()

@@ -10,6 +10,28 @@ import { Logo } from "@/components/logo"
 import loginBg from "../public/assets/login_bg.png"
 import poweredBy from "../public/assets/powered_by_apexon.svg"
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import './carousel.css'; // custom styles here
+
+
+const slides = [
+  {
+    image: '/assets/slide1.svg',
+    text: 'Orchestrate complex workflows with intelligent, adaptable agents',
+  },
+  {
+    image: '/assets/slide2.svg',
+    text: 'Design and deploy rapidly',
+  },
+  {
+    image: '/assets/slide3.svg',
+    text: 'Accelerate innovation across industries with agentic AI',
+  },
+];
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = React.useState(false)
   const router = useRouter()
@@ -33,18 +55,6 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    /** Simulate authentication delay: start */
-    // await new Promise((resolve) => setTimeout(resolve, 1000))
-    /** Simulate authentication delay: end */
-
-    // router.push("/workflows")
-    // setIsLoading(false)
-
-    // const domain = 'https://genesys-user-pool.auth.us-east-1.amazoncognito.com'
-    // const clientId = '5g5rdsptri79c98pvuopsv5dta'
-    // const redirectUri = 'https://dev3.agentic-ai.apexon-genesys.com/idpresponse'
-    // const scope = 'openid profile email'
-
     const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!
     const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
     const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!
@@ -62,15 +72,31 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex justify-center light" style={{ colorScheme: "light" }}>
-      <div className="left w-1/3 relative">
-        <div className="shade absolute top-0 bg-blue-700 h-full z-10 w-full opacity-75"></div>
-        <div className="powered text-sm text-white flex justify-center gap-2 items-center absolute top-0 left-0 p-2 z-20">
+      <div className="hidden md:block w-[40%] relative overflow-hidden rounded-3xl m-3">
+        <div className="absolute top-3 left-5 text-sm text-white flex justify-center gap-2 items-center z-20">
           <span>powered by</span>
           <img src={poweredBy.src} alt="Powered by Apexon" />
         </div>
-        <img src={loginBg.src} className="w-full h-full object-cover" alt="login-bg" />
+
+        <Swiper loop autoplay={{ delay: 3000, disableOnInteraction: false }} pagination={{ clickable: true }} modules={[Autoplay, Pagination]} className="relative h-full">
+          {slides.map((slide, index) => (
+            <SwiperSlide key={index}>
+              <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${slide.image})` }}>
+                <div className="absolute inset-0"></div>
+
+                <div className="absolute bottom-[100px] w-full flex justify-center px-10">
+                  <h2 className="text-white text-xl font-semibold text-center max-w-xl font-['Inter']">
+                    {slide.text}
+                  </h2>
+                </div>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        <div className="absolute top-5 left-5 text-white text-xs">Powered by <strong>Apexaon</strong></div>
       </div>
-      <div className="right w-2/3 flex flex-col items-center justify-center bg-white text-gray-900">
+
+      <div className="right w-[60%] flex flex-col items-center justify-center text-gray-900">
         <div className="flex flex-col justify-center" style={{ flexGrow: "1" }}>
           <div className="mt-5 flex justify-center">
             <Logo />
@@ -80,13 +106,13 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardFooter className="text-center flex justify-center">
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+              <Button type="submit" className="w-[200px] h-[47px] rounded-[45px] bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
             </CardFooter>
           </form>
         </div>
-        <div className="copyright text-xs p-2 text-gray-600">
+        <div className="copyright text-xs p-4 text-gray-600">
           Apexon, Copyright © 2025 Apexon India Pvt. Ltd. All rights reserved.
         </div>
       </div>

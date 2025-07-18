@@ -1,0 +1,31 @@
+/* carousel.css */
+
+.swiper-pagination-bullets {
+    position: absolute;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background-color: #BFBFBF70;
+    border-radius: 9999px;
+    width: auto !important;
+    z-index: 10;
+}
+
+.swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 9999px;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+    background-color: #0D0D0D;
+    /* Active dot */
+}

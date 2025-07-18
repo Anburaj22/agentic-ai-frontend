@@ -80,6 +80,10 @@ const ChatModal = ({isOpen, onClose, workflowId, workflow}: propsType) => {
     // for (const item of workflow.nodes) {
     for (const item of workflow) {
       if(item.id.startsWith("tool-")) {
+        if(item.data.tool_name === 'CsvSearchTool') {
+          newPayload.file_path = '';
+          newPayload.prompt = '';
+        }
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
           newPayload.prompt = currentMessage || '';

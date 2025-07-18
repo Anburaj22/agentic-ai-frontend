@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { LogOut, Settings, Sun, Moon, ArrowRightLeft, CodeXml } from 'lucide-react';
+import React, { createContext, useContext } from "react"
+import { LogOut, Settings, Sun, Moon, CodeXml, User } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { usePathname } from 'next/navigation';
 
@@ -40,8 +40,15 @@ export default function PopoverMenu() {
 
   const openApiCodeModal = () => {
     setIsCodeModalVisible(true);
-    if( currentWfId !== 'new') {
-    }
+  }
+
+  const handleClick = () => {
+    setOpen(false);
+  }
+
+  const doLogout = () => {
+    setOpen(false);
+    logout();
   }
 
   return (
@@ -56,12 +63,20 @@ export default function PopoverMenu() {
       {open && (
         <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
           <div className="py-1 text-sm text-gray-700 dark:text-gray-200">
-            {/* {
+            
+            {/* user full name */}
+            <button className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={handleClick}>
+              <User className="w-4 h-4 mr-2" />
+              {localStorage.getItem('user_full_name')}
+            </button>
+
+            {/* Api access block */}
+            {
               (pathname !== '/workflows/new' && pathname !== '/workflows') && (
                 <>
                   <button
                     className='flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    onClick={ () => openApiCodeModal()}
+                    onClick={ () => {openApiCodeModal()}}
                   >
                     <CodeXml className='w-4 h-4 mr-2' />
                     API Access
@@ -69,8 +84,9 @@ export default function PopoverMenu() {
                   <CodeModal isOpen={isCodeModalVisible} setIsOpen={setIsCodeModalVisible} workflowId={currentWfId} />
                 </>
               )
-            } */}
+            }
 
+            {/* theme changing block */}
             {mounted && (
               <button
                 className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -81,7 +97,9 @@ export default function PopoverMenu() {
               </button>
             )}
 
-            <button className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={logout}>
+            {/* Logout button block */}
+            {/* <button className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={logout}> */}
+            <button className="flex items-center w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => doLogout()}>
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </button>

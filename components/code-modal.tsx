@@ -13,12 +13,25 @@ interface propsType {
 const CodeModal = ({isOpen, setIsOpen, workflowId}: propsType) => {
 
   if (!isOpen) return null
-  
+
+
   const tabList = ['JavaScript', 'Python', 'CUrl'];
   const disabledTab = 'Disabled';
-  const [apiUrl, setApiUrl] = React.useState<string>(`https://dev.agentic-ai.apexon-genesys.com/workflows/${workflowId}/run`);
 
+  const [dynamicPayload, setDynamicPayload] = React.useState<any>({});
+  const [apiUrl, setApiUrl] = React.useState<string>(`https://dev.agentic-ai.apexon-genesys.com/workflows/${workflowId}/run`);
   const [activeTab, setActiveTab] = React.useState('JavaScript');
+
+  React.useEffect( () => {
+    const raw = localStorage.getItem('payload') || '{}';
+    try {
+      const parsed = JSON.parse(raw);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setDynamicPayload(formatted);
+    } catch {
+      setDynamicPayload('{}');
+    }
+  }, []);
 
   const handleTabClick = (tab: string) => {
     if (tab !== disabledTab) {
@@ -71,7 +84,7 @@ const CodeModal = ({isOpen, setIsOpen, workflowId}: propsType) => {
                     source={`
 \`\`\`javascript
 const url = '${apiUrl}';
-const payload = {};
+const payload = ${dynamicPayload};
 const options = {
     method: 'POST',
     headers: {
