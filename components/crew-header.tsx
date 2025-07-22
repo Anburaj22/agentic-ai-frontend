@@ -21,6 +21,7 @@ interface CrewHeaderProps {
   buttonTitle: string
   disableRunBtn: boolean
   disableUploadBtn: boolean
+  setIsFileUploaded: any
 }
 
 export function CrewHeader({
@@ -33,6 +34,7 @@ export function CrewHeader({
   buttonTitle,
   disableRunBtn,
   disableUploadBtn,
+  setIsFileUploaded
 }: CrewHeaderProps) {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -83,7 +85,13 @@ export function CrewHeader({
 
   const handleFileChange = (e: any) => {
     const file = e.target.files[0];
+
     if (!file) return;
+
+    if(file.type !== 'application/json') {
+      toast.error('Please upload a valid JSON workflow file');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -96,6 +104,7 @@ export function CrewHeader({
 
   React.useEffect( () => {
     if(fileContent) {
+      setIsFileUploaded(true);
       setWorkflow(fileContent);
     }
   }, [fileContent]);
@@ -139,72 +148,40 @@ export function CrewHeader({
 
       <div className="flex-1 flex justify-center">
         <div className="flex items-center gap-2">
-          {/* <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" disabled={true}>
-                  <Undo className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Undo</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" disabled={true}>
-                  <Redo className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Redo</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <Separator orientation="vertical" className="h-6 mx-2" /> */}
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={exportWorkflow}>
-                  <Download className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Export Flow</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={disableUploadBtn}>
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Import Flow
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" disabled={true}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Share Flow</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" onClick={exportWorkflow}>
+                <Download className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export Flow</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={disableUploadBtn}>
+                <Upload className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Import Flow
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
         <Button className="bg-blue hover:bg-blue-dark" onClick={runWorkflow} disabled={disableRunBtn}>
           <Play /> Run
         </Button>
+        
         <Button className="bg-blue hover:bg-blue-dark" onClick={saveWorkflow} >
           <Save /> {buttonTitle}
         </Button>

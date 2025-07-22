@@ -1,21 +1,30 @@
 import axios from 'axios';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
-const metaData = {
-  token: 'random-token', //localStorage.getItem('access_token')
-  user_name: 'random-user-name',
-  user_email: 'user@apexon.com'
-}
+const getMetaData = () => {
+  if (typeof window !== 'undefined') {
+    return {
+      token: localStorage.getItem('access_token'),
+      user_name: localStorage.getItem('user_full_name'),
+      user_email: localStorage.getItem('user_email'),
+    };
+  }
+  return {
+    token: '',
+    user_name: '',
+    user_email: '',
+  };
+};
 
 export const getTools = async () => {
   const url = `${baseUrl}/tools/`;
-  const response = await axios.post(url, metaData);
+  const response = await axios.post(url, getMetaData() );
   return response.data;
 }
 
 export const getToolByName = async (toolId: string | number) => {
   const url = `${baseUrl}/tools/tool-name`;
-  const data = {...metaData, id: toolId}
+  const data = {...getMetaData(), id: toolId}
   const response = await axios.post(url, data);
   return response.data;
 }
@@ -28,7 +37,7 @@ export const fileUploadForTool = async (formData: any) => {
 
 export const getUploadedFileByName = async ( fileName: String) => {
   const url = `${baseUrl}/data/get_files/`;
-  const data = {...metaData, file_name: fileName};
+  const data = {...getMetaData(), file_name: fileName};
   const response = await axios.post(url, data);
   return response.data;
 }

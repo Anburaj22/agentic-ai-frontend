@@ -148,6 +148,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
       fileUploadForTool(formData).then( (resp: any) => {
         /** Once file is uploaded call the service to get file path */
         getUploadedFileByName(fileNameLocal).then( (resp: any) => {
+          console.log(resp);
           setFilePath(resp.file_url);
 
           // here I need to call fileload api to re render the list.
@@ -260,34 +261,33 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
         {(fieldType === 'text' || fieldType === 'number'  )  && (
           <>
             <Label className="text-xs font-medium text-muted-foreground">{config.label}</Label>
-            <Input
+            {
+              fieldName === 'file_path' ? (
+                <Input
+                  {...commonProps}
+                  type={fieldType}
+                  placeholder={config.description}
+                  disabled={true}
+                  value={nodeData[fieldName] || filePath}
+                />
+              ) : (
+                <Input
+                  {...commonProps}
+                  type={fieldType}
+                  placeholder={config.description}
+                  onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
+                  value={nodeData[fieldName] || ''}
+                />
+              )
+            }
+            {/* <Input
               {...commonProps}
               type={fieldType}
               placeholder={config.description}
               onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
-              disabled={ fieldName === 'pdf_path' ? true : false}
-              {...(fieldName === 'pdf_path' ? { value: nodeData[fieldName] } : {})}
-            />
-
-            {/* {(fieldName === 'pdf_path') ? (
-              <Input
-                {...commonProps}
-                type={fieldType}
-                placeholder={config.description}
-                onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
-                // value={nodeData[fieldName]}
-                disabled={isDisable}
-                {...(fieldName === 'pdf_path' ? { value: nodeData[fieldName] } : {})}
-              />
-            ) : (
-              <Input
-                {...commonProps}
-                type={fieldType}
-                placeholder={config.description}
-                onChange={ (e: any ) => handleFieldChange(fieldName, e.target.value)}
-                onBlur={() => debouncedUpdate(nodeData)}
-              />
-            )} */}
+              disabled={ fieldName === 'file_path' ? true : false}
+              {...(fieldName === 'file_path' ? { value: nodeData[fieldName] } : {})}
+            /> */}
           </>
         )}
         {(fieldType === 'select') && (
@@ -326,7 +326,7 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
   useEffect(() => {
     if (data) {
       /** When fetching the data if tool is RAG tool then call the API to list all uploaded files */
-      if(data.tool_name) {
+      if(data.tool_name && data.tool_name === 'RagTool') {
         fetchAndSetUploadedFiles();
       }
       setNodeData((prevData) => ({
@@ -362,8 +362,8 @@ function ToolNodeComponent({ id, data, selected }: NodeProps) {
 
   useEffect(() => {
     if (filePath) {
-      handleFieldChange('pdf_path', filePath);
-      debouncedUpdate({ ...nodeData, pdf_path: filePath });
+      handleFieldChange('file_path', filePath);
+      debouncedUpdate({ ...nodeData, file_path: filePath });
     }
   }, [filePath]);
 

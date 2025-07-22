@@ -4,7 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Search, Users, Trash2, Workflow, Wrench } from "lucide-react"
+import { Search, Users, Trash2, Workflow, Wrench, Copy, Info } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from 'react-toastify';
 
@@ -19,6 +19,7 @@ export default function WorkflowsPage() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isAdmin, setIsAdmin] = React.useState<string | null>('');
+  const [showInfoIndex, setShowInfoIndex] = React.useState<number | null>();
 
   React.useEffect( () => {
     getAllWorkflow();
@@ -65,22 +66,6 @@ export default function WorkflowsPage() {
       workflow.workflow_name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const showStatus = (status: string) => {
-    let html: any = '';
-    switch(status) {
-      case 'success':
-        html = <span className="flex w-3 h-3 bg-green-500 rounded-full"></span>
-        break;
-      case 'error':
-        html = <span className="flex w-3 h-3 bg-red-500 rounded-full"></span>
-        break;
-      case 'in_progress':
-        html = <span className="flex w-3 h-3 bg-yellow-500 rounded-full"></span>
-      break;
-    }
-    return html;
-  }
-
   const formatDate = (dateString: any) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -101,6 +86,18 @@ export default function WorkflowsPage() {
         toast.error(`Error ${status}: ${errorMessage}`);
       } );
     }
+  }
+
+  const formatDateToDDMMYY = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  }
+
+  const cloneWorkflow = (id: string) => {
+    console.log(id);
   }
 
   return (
@@ -126,45 +123,77 @@ export default function WorkflowsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorkflows.map((workflow:any, index: any) => (
-            <Card className="h-full hover:border-blue hover:shadow-md transition-all" key={index}>
-              <CardContent className="p-4">
-                <div className="title mb-4 flex gap-2 items-center">
-                  <div className={`rounded-md ${workflow.color}`} style={{padding: '6px'}}>
-                    <workflow.icon className="h-5 w-5" />
+            <Card className="h-full hover:border-blue hover:shadow-md relative overflow-hidden" key={index}>
+              <div className="wrapper relative">
+                <CardContent className="p-4">
+                  <div className="title mb-4 flex justify-between">
+                    <div className="left flex gap-2 items-center">
+                      <div className={`rounded-md ${workflow.color}`} style={{padding: '6px'}}>
+                        <workflow.icon className="h-5 w-5" />
+                      </div>
+                      <Link
+                        className="cursor-pointer font-normal text-[15px]"
+                        href={`/workflows/${workflow.id}`}
+                        key={workflow.id}
+                        title={workflow.workflow_name}
+                      >
+                        {workflow.workflow_name}
+                      </Link>
+                    </div>
+                    <div className="right z-50">
+                      <Info
+                        className={`cursor-pointer ${showInfoIndex === index  ? 'text-white' : 'text-black'}`}
+                        size={16}
+                        onMouseEnter={() => setShowInfoIndex(index)}
+                        onMouseLeave={() => setShowInfoIndex(null)}
+                      />
+                    </div>
                   </div>
-                  <Link
-                    className="cursor-pointer font-normal text-[15px]"
-                    href={`/workflows/${workflow.id}`}
-                    key={workflow.id}
-                    title={workflow.workflow_name}
+                  <p
+                    className="text-xs text-muted-foreground mb-4 description"
+                    style={{
+                      maxHeight: 'calc(1em * 5)',
+                      height: 'calc(1em * 5)'
+                    }}
                   >
-                    {workflow.workflow_name}
-                  </Link>
-                </div>
-                <p
-                  className="text-xs text-muted-foreground mb-4 description"
-                  style={{
-                    maxHeight: 'calc(1em * 5)',
-                    height: 'calc(1em * 5)'
-                  }}
-                >
-                  {workflow.workflow_description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="flex items-center gap-1 font-thin">
-                      <Users className="h-3 w-3" />
-                      <span>{workflow.agents} Agents</span>
-                    </Badge>
-                    <Badge variant="outline" className="flex items-center gap-1 font-thin">
-                      <Wrench className="h-3 w-3" />
-                      <span>{workflow.tasks} Tasks</span>
-                    </Badge>
+                    {workflow.workflow_description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="flex items-center gap-1 font-thin">
+                        <Users className="h-3 w-3" />
+                        <span>{workflow.agents} Agents</span>
+                      </Badge>
+                      <Badge variant="outline" className="flex items-center gap-1 font-thin">
+                        <Wrench className="h-3 w-3" />
+                        <span>{workflow.tasks} Tasks</span>
+                      </Badge>
+                    </div>
+                    <div className="icon-group flex gap-2">
+                      <Copy className="cursor-pointer" size={16} onClick={() => cloneWorkflow(workflow.id)}></Copy>
+                      {isAdmin === 'true' && (<Trash2 className="cursor-pointer" size={16} onClick={ () => handleDelete(workflow.id)} />)}
+                    </div>
                   </div>
-                  {isAdmin === 'true' && (<Trash2 className="cursor-pointer" size={16} onClick={ () => handleDelete(workflow.id)} />)}
-                </div>
-              </CardContent>
+                </CardContent>
+                {showInfoIndex === index && (
+                  <div className="workflow-info p-4 text-sm absolute top-0 w-full h-full bg-blue text-white rounded-tr-lg animate-slide-in-diagonal-bounded">
+                    <p>
+                      <span className="title font-bold">Created at: &nbsp;</span>
+                      <span className="detail">{formatDateToDDMMYY(workflow.created_at)}</span>
+                    </p>
+                    <p>
+                      <span className="title font-bold">Created by: &nbsp;</span>
+                      <span className="detail">-</span>
+                    </p>
+                    <p>
+                      <span className="title font-bold">Email: &nbsp;</span>
+                      <span className="detail">-</span>
+                    </p>
+                  </div>
+                )}
+              </div>
             </Card>
+
           ))}
         </div>
       </div>

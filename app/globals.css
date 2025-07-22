@@ -182,5 +182,37 @@
 .text-blue-primary {color: #007bff;}
 .border-blue-primary {border-color: #007bff;}
 
+/** animation for gear icon */
 .spin-on-hover {transition: transform 0.5s ease-in-out;}
 .spin-on-hover:hover {transform: rotate(45deg);}
+
+/** animation for info button hover*/
+@keyframes slideInDiagonalBounded {
+  0% {
+    opacity: 0;
+    transform: translate(30%, -30%) scale(0.95);
+    border-bottom-left-radius: 0px;
+  }
+  10% {border-bottom-left-radius: 20px;}
+  20% {border-bottom-left-radius: 35px;}
+  30% {border-bottom-left-radius: 45px;}
+  40% {border-bottom-left-radius: 55px;}
+  50% {border-bottom-left-radius: 60px;}
+  60% {border-bottom-left-radius: 50px;}
+  70% {border-bottom-left-radius: 40px;}
+  80% {border-bottom-left-radius: 25px;}
+  85% {border-bottom-left-radius: 18px;}
+  90% {border-bottom-left-radius: 12px;}
+  95% {border-bottom-left-radius: 8px;}
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+    border-bottom-left-radius: 5px;
+  }
+}
+
+
+.animate-slide-in-diagonal-bounded {
+  animation: slideInDiagonalBounded 0.2s ease-in-out forwards;
+
+}

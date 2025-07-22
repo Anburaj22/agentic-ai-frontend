@@ -74,7 +74,8 @@ interface WorkflowType {
     x: number,
     y: number,
     zoom: number
-  }
+  },
+  is_locked: boolean
 }
 
 function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
@@ -90,7 +91,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [workflow, setWorkflow] = React.useState<WorkflowType>({
     workflow_name: 'New Workflow',
     workflow_description: 'A simple workflow in which agents, tasks and tools works together',
-    nodes: []
+    nodes: [],
+    viewport: {x: 0, y: 0, zoom: 1},
+    is_locked: false
   });
   const [showResultSidebar, setShowResultSidebar] = React.useState(false);
   const [savedWorkflowId, setSavedWorkflowId] = React.useState(null);
@@ -103,7 +106,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const [output, setOutput] = React.useState<any>();
   const [reactFlowReady, setReactFlowReady] = React.useState(false);
   const [disableRunBtn, setDisableRunBtn] = React.useState<boolean>(false);
-  const [disableUploadBtn, setDisableUploadBtn ] = React.useState<boolean>(true);
+  const [disableUploadBtn, setDisableUploadBtn ] = React.useState<boolean>(false);
+
+  const [isFileUploaded, setIsFileUploaded] = React.useState<boolean>(false);
 
   /** Load workflow data based on workflowId */
   React.useEffect(() => {
@@ -150,18 +155,17 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   }, [workflowId, reactFlowReady, reactFlowInstance]);
   
   /** Only works when we upload the file */
-  // React.useEffect(() => {
-  //   console.log(workflow.nodes);
-  //   if (workflowId === 'new' && workflow.nodes.length && !initializedRef.current) {
-  //     initializedRef.current = true;
+  React.useEffect( () => {
+    if (workflowId === 'new' && isFileUploaded) {
+      setIsFileUploaded(false);
 
-  //     const generatedNodes = transformWorkflow(workflow);
-  //     setNodes(generatedNodes);
+      const generatedNodes = transformWorkflow(workflow);
+      setNodes(generatedNodes);
 
-  //     const generatedEdges = generateEdgesFromNodes(workflow);
-  //     setEdges(generatedEdges);
-  //   }
-  // }, [workflowId, workflow]);
+      const generatedEdges = generateEdgesFromNodes(workflow);
+      setEdges(generatedEdges);
+    }
+  }, [workflow]);
 
   /** Set setDisableUploadButton based on id */
   React.useEffect( () => {
@@ -414,6 +418,24 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     });
   }, [edges]);
 
+  const cleanWorkflow = (workflow: any) => {
+    const { created_at, updated_at, ...rest } = workflow;
+    // const cleanedNodes = workflow.nodes.map(({ source, ...nodeRest }) => {
+    //   return {
+    //     ...nodeRest,
+    //   };
+    // });
+    const cleanedNodes = workflow.nodes.map((node: any) => {
+      const { source, ...rest } = node;
+      return rest;
+    });
+
+    return {
+      ...rest,
+      nodes: cleanedNodes,
+    };
+  }
+
   const saveWorkflow = () => {
     /** First we are checking that workflow is not empty atleast */
     if( workflow.nodes.length > 0 ) {
@@ -423,7 +445,10 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
       const currentViewport = reactFlowInstance?.getViewport?.();
       if (currentViewport) {
         workflow.viewport = currentViewport;
-      }      
+      }
+
+      /** set workflow is lock to move or not */
+      workflow.is_locked = false;
 
       if(workflowId === 'new') {
         /** Saving new workflow */
@@ -443,13 +468,13 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         });
       } else {
         /** Update existing workflow */
+        const updatedWf = cleanWorkflow(workflow);
         if( workflowId ) {
-          setIsLoading(true);
-          updateWorkflow(workflowId, workflow).then( (resp) => {
+          updateWorkflow(workflowId, updatedWf).then( (resp) => {
+            setIsLoading(false);
             if(resp && resp.data.id) {
               toast.success('Workflow updated successfully');
             }
-            setIsLoading(false);
           } ).catch( (err) => {
             setIsLoading(false);
             const status = err.response.status;
@@ -480,17 +505,22 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     const newPayload = {} as {[key: string]: any}
     for (const item of nodes) {
       if(item.id.startsWith("tool-")) {
+        console.log(item.data);
         if(item.data.tool_name === 'CsvSearchTool') {
           newPayload.file_path = '';
           newPayload.prompt = '';
         }
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
-          newPayload.prompt = item.data.query || '';
+          newPayload.prompt = item.data.prompt || '';
         }
         if(item.data.tool_name === 'PdfSearchTool') {
-          newPayload.file_path = item.data.pdf_path || '';
-          newPayload.prompt = item.data.query || '';
+          newPayload.file_path = item.data.file_path || '';
+          newPayload.prompt = item.data.prompt || '';
+        }
+        if(item.data.tool_name === 'FILEReaderTool') {
+          newPayload.file_path = item.data.file_path || '';
+          newPayload.prompt = item.data.prompt || '';
         }
       }
     }
@@ -624,6 +654,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
   const ChatOutputNodeWrapper = (props: any) => (
     <ChatOutputNode {...props} onOpenModal={handleOpenChatModal} />
   );
+
   const nodeTypes: NodeTypes = React.useMemo(
     () => ({
       agent: AgentNode,
@@ -672,6 +703,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               buttonTitle={workflowId === 'new' ? 'Save' : 'Update'}
               disableRunBtn={disableRunBtn}
               disableUploadBtn={disableUploadBtn}
+              setIsFileUploaded={setIsFileUploaded}
             />
           )}
           <div

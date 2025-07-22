@@ -82,14 +82,14 @@ const ChatModal = ({isOpen, onClose, workflowId, workflow}: propsType) => {
       if(item.id.startsWith("tool-")) {
         if(item.data.tool_name === 'CsvSearchTool') {
           newPayload.file_path = '';
-          newPayload.prompt = '';
+          newPayload.prompt = currentMessage || '';
         }
         if(item.data.tool_name === 'RagTool') {
           newPayload.file_name = item.data.uploaded_file || '';
           newPayload.prompt = currentMessage || '';
         }
         if(item.data.tool_name === 'PdfSearchTool') {
-          newPayload.file_path = item.data.pdf_path || '';
+          newPayload.file_path = item.data.file_path || '';
           newPayload.prompt = currentMessage || '';
         }
       }
