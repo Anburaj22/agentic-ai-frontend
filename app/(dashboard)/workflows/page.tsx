@@ -12,6 +12,7 @@ import RequireAuth from "@/components/RequireAuth"
 import { deleteWorkflow, getWorkflow } from "@/services/WorkflowServices"
 import PreLoader from "@/components/PreLoader"
 import SettingMenu from "@/components/setting-menu"
+import CloneModal from "@/components/clone-modal"
 
 export default function WorkflowsPage() {
 
@@ -20,6 +21,8 @@ export default function WorkflowsPage() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isAdmin, setIsAdmin] = React.useState<string | null>('');
   const [showInfoIndex, setShowInfoIndex] = React.useState<number | null>();
+  const [showCloneModal, setShowCloneModal] = React.useState<boolean>(false);
+  const [selectedWorkflowId, setSelectedWorkflowId] = React.useState<string>('');
 
   React.useEffect( () => {
     getAllWorkflow();
@@ -39,9 +42,9 @@ export default function WorkflowsPage() {
       const updatedData = resp.data.map((item: any) => ({
         ...item,
         icon: Workflow,
-        // color: 'bg-blue-500/10 text-blue-500',
         color: generateRandomColor(),
-        lastEdited: formatDate(item.updated_at),
+        createdAt: formatDate(item.created_at),
+        editedAt: formatDate(item.updated_at),
         agents: getTypeCount(item, 'agent'),
         tasks: getTypeCount(item, 'task'),
         status: 'success'
@@ -88,16 +91,9 @@ export default function WorkflowsPage() {
     }
   }
 
-  const formatDateToDDMMYY = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
-  }
-
   const cloneWorkflow = (id: string) => {
-    console.log(id);
+    setSelectedWorkflowId(id);
+    setShowCloneModal(true);
   }
 
   return (
@@ -118,6 +114,11 @@ export default function WorkflowsPage() {
               />
             </div>
             <SettingMenu />
+            <CloneModal
+              isOpen={showCloneModal}
+              manageModal={setShowCloneModal}
+              selectedWorkflow={selectedWorkflowId}
+            />
           </div>
         </div>
 
@@ -142,7 +143,7 @@ export default function WorkflowsPage() {
                     </div>
                     <div className="right z-50">
                       <Info
-                        className={`cursor-pointer ${showInfoIndex === index  ? 'text-white' : 'text-black'}`}
+                        className={`cursor-pointer ${showInfoIndex === index  ? 'text-white' : 'text-black'} dark:text-white`}
                         size={16}
                         onMouseEnter={() => setShowInfoIndex(index)}
                         onMouseLeave={() => setShowInfoIndex(null)}
@@ -179,14 +180,14 @@ export default function WorkflowsPage() {
                   <div className="workflow-info p-4 text-sm absolute top-0 w-full h-full bg-blue text-white rounded-tr-lg animate-slide-in-diagonal-bounded">
                     <p>
                       <span className="title font-bold">Created at: &nbsp;</span>
-                      <span className="detail">{formatDateToDDMMYY(workflow.created_at)}</span>
+                      <span className="detail">{(workflow.createdAt)}</span>
+                    </p>
+                    <p>
+                      <span className="title font-bold">Updated at: &nbsp;</span>
+                      <span className="detail">{(workflow.editedAt)}</span>
                     </p>
                     <p>
                       <span className="title font-bold">Created by: &nbsp;</span>
-                      <span className="detail">-</span>
-                    </p>
-                    <p>
-                      <span className="title font-bold">Email: &nbsp;</span>
                       <span className="detail">-</span>
                     </p>
                   </div>

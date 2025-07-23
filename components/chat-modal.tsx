@@ -6,7 +6,7 @@ import PreLoader from './PreLoader'
 import { toast } from 'react-toastify';
 import { executeWorkflow } from '@/services/WorkflowServices';
 import MDEditor from '@uiw/react-md-editor';
-import { Copy } from 'lucide-react';
+import { Copy, X } from 'lucide-react';
 
 interface propsType {
   isOpen: boolean
@@ -187,7 +187,7 @@ const ChatModal = ({isOpen, onClose, workflowId, workflow}: propsType) => {
           
           {/* close button */}
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-black text-2xl">
-            &times;
+            <X />
           </button>
 
           {/* Chat area */}

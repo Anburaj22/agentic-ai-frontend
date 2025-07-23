@@ -505,7 +505,6 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
     const newPayload = {} as {[key: string]: any}
     for (const item of nodes) {
       if(item.id.startsWith("tool-")) {
-        console.log(item.data);
         if(item.data.tool_name === 'CsvSearchTool') {
           newPayload.file_path = '';
           newPayload.prompt = '';

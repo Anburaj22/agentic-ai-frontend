@@ -52,7 +52,7 @@ export default function PopoverMenu() {
   }
 
   return (
-    <div className="relative inline-block text-left" ref={menuRef}>
+    <div className="fly-menu relative inline-block text-left" ref={menuRef} style={{zIndex: '99'}}>
       <button
         onClick={() => setOpen(!open)}
         className="p-2 rounded-full transition"
