@@ -49,7 +49,7 @@ const CodeModal = ({isOpen, setIsOpen, workflowId}: propsType) => {
         id="fullPageModal"
         className="h-screen fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
       >
-        <div className="bg-white bg-white rounded-xl relative p-2 w-3/4">
+        <div className="bg-white rounded-xl relative p-2 w-3/4">
           <div className="header">
             <div className="close-btn flex justify-end">
               <X className="cursor-pointer" onClick={closeCodeModal} />

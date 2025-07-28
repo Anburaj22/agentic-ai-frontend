@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Users, Trash2, Workflow, Wrench, Copy, Info } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from 'react-toastify';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 import RequireAuth from "@/components/RequireAuth"
 import { deleteWorkflow, getWorkflow } from "@/services/WorkflowServices"
@@ -118,22 +119,24 @@ export default function WorkflowsPage() {
               isOpen={showCloneModal}
               manageModal={setShowCloneModal}
               selectedWorkflow={selectedWorkflowId}
+              title="Clone Workflow"
+              buttonLabel="Clone"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorkflows.map((workflow:any, index: any) => (
-            <Card className="h-full hover:border-blue hover:shadow-md relative overflow-hidden" key={index}>
+            <Card className="h-full hover:border-blue hover:shadow-md relative" key={index}>
               <div className="wrapper relative">
                 <CardContent className="p-4">
                   <div className="title mb-4 flex justify-between">
-                    <div className="left flex gap-2 items-center">
-                      <div className={`rounded-md ${workflow.color}`} style={{padding: '6px'}}>
+                    <div className="left flex gap-2 items-center w-[calc(100%_-_6%)]">
+                      <div className={`rounded-md ${workflow.color} p-2`}>
                         <workflow.icon className="h-5 w-5" />
                       </div>
                       <Link
-                        className="cursor-pointer font-normal text-[15px]"
+                        className="cursor-pointer font-normal text-[15px] truncate overflow-hidden whitespace-nowrap"
                         href={`/workflows/${workflow.id}`}
                         key={workflow.id}
                         title={workflow.workflow_name}
@@ -141,7 +144,7 @@ export default function WorkflowsPage() {
                         {workflow.workflow_name}
                       </Link>
                     </div>
-                    <div className="right z-50">
+                    <div className="right z-50 w-[6%]">
                       <Info
                         className={`cursor-pointer ${showInfoIndex === index  ? 'text-white' : 'text-black'} dark:text-white`}
                         size={16}
@@ -177,7 +180,7 @@ export default function WorkflowsPage() {
                   </div>
                 </CardContent>
                 {showInfoIndex === index && (
-                  <div className="workflow-info p-4 text-sm absolute top-0 w-full h-full bg-blue text-white rounded-tr-lg animate-slide-in-diagonal-bounded">
+                  <div className="workflow-info p-4 text-sm absolute top-0 w-full h-full bg-blue text-white rounded-lg">
                     <p>
                       <span className="title font-bold">Created at: &nbsp;</span>
                       <span className="detail">{(workflow.createdAt)}</span>

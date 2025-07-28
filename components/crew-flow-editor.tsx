@@ -705,8 +705,9 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
               setIsFileUploaded={setIsFileUploaded}
             />
           )}
+            {/* className={`flex-1 ${showHeader ? "h-[calc(100vh-4rem)]" : "h-screen"} outline-none`} */}
           <div
-            className={`flex-1 ${showHeader ? "h-[calc(100vh-4rem)]" : "h-screen"} outline-none`}
+            className={`flex-1 ${showHeader ? "" : "h-screen"} outline-none`}
             ref={reactFlowWrapper}
             style={{ contain: "layout style paint" }}
           >

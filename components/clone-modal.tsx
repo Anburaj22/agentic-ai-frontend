@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react'
-import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -13,16 +12,18 @@ interface propsType {
   isOpen: boolean
   manageModal: any
   selectedWorkflow: string
+  title: string;
+  buttonLabel: string;
 }
 
-/** interface: form data type */
+/** Interface: form data type */
 interface FormDataType {
   workflowName: string
   workflowDescription: string
   [key: string]: any
 };
 
-/** form validation schema */
+/** Interface: form validation schema */
 const validationSchema = yup.object().shape({
   workflowName: yup
     .string()
@@ -33,8 +34,8 @@ const validationSchema = yup.object().shape({
     .max(150, 'Maximum 150 characters'),
 });
 
-/** component start */
-const CloneModal = ({isOpen, manageModal, selectedWorkflow}: propsType) => {
+/** Component */
+const CloneModal = ({isOpen, manageModal, selectedWorkflow, title, buttonLabel}: propsType) => {
 
   if (!isOpen) return null
 
@@ -46,8 +47,8 @@ const CloneModal = ({isOpen, manageModal, selectedWorkflow}: propsType) => {
       workflowDescription: ''
     },
     validationSchema,
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: (values: FormDataType) => {
+      values.existingWorkflowId = selectedWorkflow
     }
   });
 
@@ -55,20 +56,13 @@ const CloneModal = ({isOpen, manageModal, selectedWorkflow}: propsType) => {
     <>
       {isLoading ? <PreLoader /> : <></>}
       <div id="fullPageModal"className="h-screen fixed inset-0 z-50 bg-black/50 flex items-center justify-center" style={{zIndex: '999'}}>
-        <div className="bg-white bg-white rounded-xl relative p-2 w-1/2">
+        <div className="bg-white rounded-xl relative p-4 w-1/2">
           <div className="header">
-            <div className="close-btn flex justify-between items-center">
-              <div className="title w-full text-center"><h5>Clone workflow</h5></div>
-              <div className="close">
-                <button className='text-gray-500 hover:text-black text-2xl cursor-pointer' onClick={ () => manageModal(false)}>
-                  <X />
-                </button>
-              </div>
-            </div>
+            <div className="title w-full text-center"><h5>{title}</h5></div>
           </div>
           <div className="body">
 
-            <form className="p-4" onSubmit={formik.handleSubmit}>
+            <form className="p-2" onSubmit={formik.handleSubmit}>
               <div className='form-group mb-4'>
                 <label className="text-sm text-gray-700 cursor-pointer" htmlFor='workflowName'>Workflow Name</label>
                 <input
@@ -81,7 +75,7 @@ const CloneModal = ({isOpen, manageModal, selectedWorkflow}: propsType) => {
                   onBlur={formik.handleBlur}
                 />
                 {formik.errors.workflowName && formik.touched.workflowName && (
-                  <p className="text-red-800 text-xs mt-1">
+                  <p className="text-red-600 text-xs mt-1">
                     {formik.errors.workflowName}
                   </p>
                 )}
@@ -99,13 +93,14 @@ const CloneModal = ({isOpen, manageModal, selectedWorkflow}: propsType) => {
                 <span className='info-text text-[10px] italic text-gray-500'>*Only 150 Characters allowed</span>
                 {formik.errors.workflowDescription &&
                   formik.touched.workflowDescription && (
-                    <p className="text-red-800 text-xs mt-1">
+                    <p className="text-red-600 text-xs mt-1">
                       {formik.errors.workflowDescription}
                     </p>
                   )}
               </div>
-              <div className="form-group mb-4">
-                <Button type='submit' className='bg-blue hover:bg-blue-dark w-full'>Clone</Button>
+              <div className="form-group flex justify-between">
+                <Button type='button' onClick={ () => manageModal(false)}>Cancel</Button>
+                <Button type='submit' className='bg-blue hover:bg-blue-dark'>{buttonLabel}</Button>
               </div>
             </form>
 

@@ -4,10 +4,11 @@ import React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Save, Play, Download, Upload, Share2, Undo, Redo } from "lucide-react"
+import { Save, Play, Download, Upload } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "react-toastify"
+import { usePathname } from "next/navigation"
 
 import SettingMenu from "./setting-menu"
 
@@ -41,6 +42,9 @@ export function CrewHeader({
   const [fileContent, setFileContent] = React.useState('');
   const [name, setName] = React.useState('');
   const [description, setDescription] = React.useState('');
+  const pathname = usePathname();
+
+  const wfType = pathname.split('/').pop();
 
   React.useEffect( () => {
     if (workflowData) {
@@ -85,21 +89,33 @@ export function CrewHeader({
 
   const handleFileChange = (e: any) => {
     const file = e.target.files[0];
+    
+    if (file) {
+      if( file.type === "application/json" ) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result as string;
+          if( text ) {
+            const json = JSON.parse(text);
 
-    if (!file) return;
-
-    if(file.type !== 'application/json') {
-      toast.error('Please upload a valid JSON workflow file');
-      return;
+            const requiredKeys = ['nodes', 'workflow_name', 'workflow_description'];
+            const hasAllKeys = requiredKeys.every(key => key in json);
+            if(hasAllKeys) {
+              setFileContent(json);
+            } else {
+              toast.error('Workflow schema not found');
+            }
+          } else {
+            toast.error('Corrupt or invalid JSON file found');
+          }
+        };
+        reader.readAsText(file);
+      } else {
+        toast.error('Please upload a valid workflow JSON file');
+      }
+    } else {
+      toast.error('File upload error');
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      const json = JSON.parse(text);
-      setFileContent(json);
-    };
-    reader.readAsText(file);
   }
 
   React.useEffect( () => {
@@ -114,69 +130,79 @@ export function CrewHeader({
   }
 
   return (
+    // className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     <header
-      className="h-16 border-b flex items-center px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      className="flex justify-between border-b items-center px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
       style={{zIndex: '999'}}
     >
       <div className="flex items-center gap-2">
         <SidebarTrigger />
+        
         <Separator orientation="vertical" className="h-6" />
-        <Input
-          placeholder="Untitled Flow"
-          className="w-60 h-9 bg-background"
-          name='workflow_name'
-          value={name}
-          onChange={handleInputChange}
-        />
-        <div className="input-wrapper flex flex-col">
+        
+        <form className="flex gap-2" action="">
+          <div className="form-group">
+            <Input
+              name='workflow_name'
+              className="w-60 bg-background"
+              value={name}
+              placeholder="Workflow Name"
+              onChange={handleInputChange}
+            />
+            {/* <p className="text-red-600 text-[10px] mt-1">Required</p> */}
+          </div>
+          <div className="form-group">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Input
+                    name='workflow_description'
+                    className="w-60 bg-background"
+                    value={description}
+                    placeholder="Workflow Description"
+                    onChange={handleInputChange}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>Only 150 characters allowed</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {/* <p className="text-red-600 text-[10px] mt-1">Required</p> */}
+          </div>
+        </form>
+      </div>
+
+      <div className="flex items-center gap-1">
+        
+        {wfType !== 'new' && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Input
-                  placeholder="Untitled Description"
-                  className="w-60 h-9 bg-background"
-                  name='workflow_description'
-                  value={description}
-                  onChange={handleInputChange}
-                />
+                <Button variant="outline" size="icon" onClick={exportWorkflow}>
+                  <Download className="h-4 w-4" />
+                </Button>
               </TooltipTrigger>
-              <TooltipContent>Only 150 characters allowed</TooltipContent>
+              <TooltipContent>Export Flow</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-      </div>
-
-      <div className="flex-1 flex justify-center">
-        <div className="flex items-center gap-2">
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
+        )}
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={exportWorkflow}>
-                <Download className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Export Flow</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={disableUploadBtn}>
-                <Upload className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Import Flow
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {wfType === 'new' && (
+          <>
+            <input className="hidden" type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={handleUploadButtonClick} disabled={disableUploadBtn}>
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Import Flow
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </>
+        )}
         
         <Button className="bg-blue hover:bg-blue-dark" onClick={runWorkflow} disabled={disableRunBtn}>
           <Play /> Run
@@ -185,9 +211,10 @@ export function CrewHeader({
         <Button className="bg-blue hover:bg-blue-dark" onClick={saveWorkflow} >
           <Save /> {buttonTitle}
         </Button>
+  
+        <SettingMenu />
       </div>
 
-      <SettingMenu />
     </header>
   )
 }

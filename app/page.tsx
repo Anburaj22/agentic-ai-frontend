@@ -2,52 +2,40 @@
 
 import React, { useEffect } from "react"
 import { useRouter } from "next/navigation"
-
-import { Button } from "@/components/ui/button"
-import { CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Logo } from "@/components/logo"
-
-import loginBg from "../public/assets/login_bg.png"
-import poweredBy from "../public/assets/powered_by_apexon.svg"
-
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
+import { Button } from "@/components/ui/button"
+import { CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+
+import { Logo } from "@/components/logo"
+import slide1 from '../public/assets/slide1.svg';
+import slide2 from '../public/assets/slide2.svg';
+import slide3 from '../public/assets/slide3.svg';
+import poweredBy from "../public/assets/powered_by_apexon.svg"
+
 import 'swiper/css';
 import 'swiper/css/pagination';
 import './carousel.css'; // custom styles here
 
-
-const slides = [
-  {
-    image: '/assets/slide1.svg',
-    text: 'Orchestrate complex workflows with intelligent, adaptable agents',
-  },
-  {
-    image: '/assets/slide2.svg',
-    text: 'Design and deploy rapidly',
-  },
-  {
-    image: '/assets/slide3.svg',
-    text: 'Accelerate innovation across industries with agentic AI',
-  },
-];
-
 export default function LoginPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
 
-  // Force light theme on login page
+  const slides = [
+    {image: slide1.src, text: 'Orchestrate complex workflows with intelligent, adaptable agents'},
+    {image: slide2.src, text: 'Design and deploy rapidly'},
+    {image: slide3.src, text: 'Accelerate innovation across industries with agentic AI'}
+  ];
+
+  /** Force light theme on login page */
   useEffect(() => {
-    // Remove dark theme and force light theme
+    if(localStorage.getItem('access_token') !== null ) {
+      router.push('/workflows');
+    }
     document.documentElement.classList.remove("dark")
     document.documentElement.classList.add("light")
-
-    // Also set the data-theme attribute for additional theme control
     document.documentElement.setAttribute("data-theme", "light")
-
-    // Clean up function - don't reset theme to avoid flashing
     return () => {
-      // Intentionally empty - let other pages handle their own theme
     }
   }, [])
 
