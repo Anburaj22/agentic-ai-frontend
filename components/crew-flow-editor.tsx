@@ -546,10 +546,7 @@ function FlowEditor({ workflowId, showHeader = true }: FlowEditorProps) {
         }
       }).catch( (err: any) => {
         setIsLoading(false);
-        const status = err.response.status;
-        const data = err.response.data;
-        const errorMessage = data.message || data.error || 'Something went wrong';
-        toast.error(`Error ${status}: ${errorMessage}`);
+        toast.error(`${err.message}`);
       });
     } else {
       setIsLoading(false);

@@ -27,7 +27,7 @@ export function AgentNode({ id, data, selected }: NodeProps) {
     agent_backstory: data?.agent_backstory || "",
     agent_model: data?.agent_model || "",
     agent_temprature: data?.agent_temprature || 0.5,
-    agent_iteration: data?.agent_iteration || 5,
+    agent_iteration: data?.agent_iteration || 1,
     agent_delegation: data?.agent_delegation || false,
     agent_verbose: data?.agent_verbose || false,
     agent_cache: data?.agent_cache || false,
